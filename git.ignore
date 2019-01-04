@@ -1,0 +1,12 @@
+#Build Script Templates
+BatchScriptTmpls/*
+
+#old files I still might want to use
+old*
+
+#Any core dump files
+core*
+
+#Executables
+
+*.x
