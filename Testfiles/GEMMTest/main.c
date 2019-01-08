@@ -147,8 +147,8 @@ void computeChainOrder(int **split, double **cost, int *sizes, int sizeMax, int 
                 
 				}
 
-                printf("Cost for %d,%d: %f\n",i,j,cost[i][j]);
-                printf("Split for %d,%d: %d\n\n",i,j,split[i][j]);
+                //printf("Cost for %d,%d: %f\n",i,j,cost[i][j]);
+                //printf("Split for %d,%d: %d\n\n",i,j,split[i][j]);
             
 			}
         
@@ -210,10 +210,18 @@ void getChainOrder(int **split, int *order, int n) {
 void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
 
     int i;
+    int copySizes[2*n];
 
-    for(i=0;i<n-1;i++)
-     	interRes[i] = (double*) malloc(sizes[order[2*i]]*sizes[order[2*i+1]]*sizeof(double));
-
+    for(i=0;i<2*n;i++)
+        copySizes[i] = sizes[i];
+    
+    for(i=0;i<n-1;i++) {
+     	interRes[i] = (double*) malloc(copySizes[order[2*i]]*copySizes[order[2*i+1]+1]*sizeof(double));
+        copySizes[order[2*i+1]] = copySizes[order[2*i]];
+        printf("The intermatrix %d has the size %dx%d\n",i,copySizes[order[2*i]],copySizes[order[2*i+1]+1]);
+    }
+    
+    printf("\n");
 }
 
 void calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
@@ -244,23 +252,28 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
         n = sizes[posY+1];
         printf("n is %d\n\n",n);
 
-        wtime_start = omp_get_wtime();
+        //wtime_start = omp_get_wtime();
 
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
 
-        wtime_end = omp_get_wtime();
+        printf("Finished computing\n\n");
 
-        wtime_sum = wtime_sum + (wtime_end - wtime_start);
+        //wtime_end = omp_get_wtime();
+
+        //wtime_sum = wtime_sum + (wtime_end - wtime_start);
+
+        if (i != j-2) {
+            mkl_free(A[posY]);
+            A[posY] = (double*) mkl_malloc(m*n*sizeof(double),64);
+            A[posY] = interRes[i];
+            sizes[posY] = m;
+        }
 
         printf("Still working at the end of it %d\n\n", i);    
 
-        mkl_free(A[posY]);
-        A[posY] = (double*) mkl_malloc(m*n*sizeof(double),64);
-        A[posY] = interRes[i];
-        sizes[posY] = m;
     }
 
-    printf("Results: %f\n\n",(double) (wtime_sum)); 
+    //printf("Results: %f\n\n",(double) (wtime_sum)); 
     
 }
 
@@ -312,8 +325,8 @@ int main() {
 	
 	int sizes[n+1];
 
-    int sizeMin = 10;
-    int sizeMax = 50;
+    int sizeMin = 1000;
+    int sizeMax = 5000;
 
     double **cost;
     cost = (double**) malloc(n*sizeof(double*));
@@ -356,7 +369,7 @@ int main() {
 
     initializeMatrices(A,sizes,n);
 
-	printf("\n\nNow the evaluation results! \n\n");
+	printf("Now the evaluation results! \n\n");
 
 
 	//Now time to evaluate results with the different cost functions. 

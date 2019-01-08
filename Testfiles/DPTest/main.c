@@ -81,8 +81,9 @@ void computeChainOrder(int **split, double **cost, int *sizes, int sizeMax, int 
 	int i,j,k,l;
     int copySizes[n+1];
 
+    //Use a normalized size array to prevent overflows
     for (i=0;i<n+1;i++) 
-        copySizes[i] = 10*sizes[i]/sizeMax;
+        copySizes[i] = (10*sizes[i])/sizeMax;
 
 
 	//Needed for the cache optimal cost function
@@ -158,6 +159,7 @@ void computeChainOrder(int **split, double **cost, int *sizes, int sizeMax, int 
 
 }
 
+
 //Recursive part of printing chain. Chain [i,j] is then referenced as chain part [j]
 
 int getRecursiveChain(int **split, int *order,  int left, int right, int pos) {
@@ -174,9 +176,9 @@ int getRecursiveChain(int **split, int *order,  int left, int right, int pos) {
 
 		pos = getRecursiveChain(split,order, k+1, right, pos);
 
-        //printf("left is %d, right is %d\n",left,right);
-        //printf("split position k is %d\n",k);
-        //printf("pos is %d\n",pos);
+        printf("left is %d, right is %d\n",left,right);
+        printf("split position k is %d\n",k);
+        printf("pos is %d\n",pos);
         
         order[pos] = k;
 
@@ -204,66 +206,6 @@ void getChainOrder(int **split, int *order, int n) {
         printf("Error in creating the order array! Pos is %d instead of %d! \n\n", pos, 2*n);
 
 }
-
-
-
-void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
-
-    int i;
-
-    for(i=0;i<n-1;i++)
-     	interRes[i] = (double*) malloc(sizes[order[2*i]]*sizes[order[2*i+1]]*sizeof(double));
-
-}
-
-void calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
-
-    double wtime_start, wtime_end, wtime_sum;
-    wtime_sum = 0.;
-
-    int i,q;
-
-    int posX,posY;
-
-    double alpha,beta;
-    alpha = 1.0;
-    beta = 0.0;
-    int m,n,k;
-
-    for(i=0;i<j-1;i++) {
-
-        printf("Still working at the start of it %d\n\n", i);
-
-        posX = order[2*i];
-        posY = order[2*i+1];
-
-        m = sizes[posX];
-        printf("m is %d\n",m);
-        k = sizes[posX+1];
-        printf("k is %d\n",k);
-        n = sizes[posY+1];
-        printf("n is %d\n\n",n);
-
-        wtime_start = omp_get_wtime();
-
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
-
-        wtime_end = omp_get_wtime();
-
-        wtime_sum = wtime_sum + (wtime_end - wtime_start);
-
-        printf("Still working at the end of it %d\n\n", i);    
-
-        mkl_free(A[posY]);
-        A[posY] = (double*) mkl_malloc(m*n*sizeof(double),64);
-        A[posY] = interRes[i];
-        sizes[posY] = m;
-    }
-
-    printf("Results: %f\n\n",(double) (wtime_sum)); 
-    
-}
-
 
 int main() {
 
@@ -312,8 +254,8 @@ int main() {
 	
 	int sizes[n+1];
 
-    int sizeMin = 10;
-    int sizeMax = 50;
+    int sizeMin = 1000;
+    int sizeMax = 10000;
 
     double **cost;
     cost = (double**) malloc(n*sizeof(double*));
@@ -368,6 +310,26 @@ int main() {
 
     computeChainOrder(split,cost,sizes,sizeMax,n,'F');
 
+    printf("Here is the split matrix...\n\n");
+    
+    for (i=0;i<n-1;i++) {
+        for (j=i+1;j<n;j++) {
+            printf("[%d] ",split[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+    
+    for (i=0;i<n-1;i++) {
+        for (j=i+1;j<n;j++) {
+            printf("[%f] ",cost[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+
     printf("Computing the best multiplication order...\n\n");
 
 	getChainOrder(split, order, n);
@@ -379,26 +341,6 @@ int main() {
     }
 
 	printf(" ]\n\n");
-
-    printf("Setting up the matrices for the intermediate results...\n\n");
-
-    setupInterMatrices(interRes,order,sizes,n);
-
-    printf("Finally calculating the results...\n\n");
-
-	calculateChain(A,interRes,order,sizes,n);
-
-	/*for (i=0; i<n; i++) {
-    	mkl_free(A[i]);
-        mkl_free(interRes[i]);
-        free(cost[i]);
-        free(split[i]);
-    }
-
-    mkl_free(A);
-    mkl_free(interRes);   
-    free(cost);
-    free(split);*/
 
 	printf("\nDone! \n\n\n");
 
