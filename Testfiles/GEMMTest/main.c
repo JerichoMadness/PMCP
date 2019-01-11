@@ -263,8 +263,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
         //wtime_sum = wtime_sum + (wtime_end - wtime_start);
 
         if (i != j-2) {
-            mkl_free(A[posY]);
-            A[posY] = (double*) mkl_malloc(m*n*sizeof(double),64);
+            A[posY] = (double*) mkl_realloc(A[posY],m*n*sizeof(double));
             A[posY] = interRes[i];
             sizes[posY] = m;
         }
