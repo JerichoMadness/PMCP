@@ -377,7 +377,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
         posX = order[2*i];
         posY = order[2*i+1];
 
-        //printf("Using matrices %d and %d\n\n",posX,posY);
+        printf("Using matrices %d and %d\n\n",posX,posY);
 
         m = sizes[posX];
         k = sizes[posX+1];
@@ -423,7 +423,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
 
 	srand(time(NULL));
 
@@ -483,8 +483,21 @@ int main() {
     int copySizes[n+1];
     int normSizes[n+1];
 
-    int sizeMin = 1000;
-    int sizeMax = 5000;
+    int sizeMin;
+    int sizeMax;    
+
+    if (argc == 1) {
+        sizeMin = 1000;
+        sizeMax = 5000;
+    } else if (argc == 3) {
+        char *c;
+        long conv = strtol(argv[1], &c, 10);
+        sizeMin = conv;
+        conv = strtol(argv[2], &c, 10);
+        sizeMax = conv;
+    } else {
+        printf("Error. Use either zero or two arguments!");
+    }
 
     double **cost;
     cost = (double**) malloc(n*sizeof(double*));
@@ -561,7 +574,7 @@ int main() {
 
     printf("Finally calculating the results...\n\n");
 
-	calculateChain(copyA,interRes,order,sizes,n);
+	calculateChain(copyA,interRes,order,copySizes,n);
 
     printf("Finished calculating the chain for minimal flops \n\n");
 
@@ -601,7 +614,7 @@ int main() {
 
     printf("Finally calculating the results...\n\n");
 
-	calculateChain(copyA,interRes,order,sizes,n);
+	calculateChain(copyA,interRes,order,copySizes,n);
 
     printf("Finished calculating the chain for minimal memory usage!\n\n");
 
