@@ -1,0 +1,30 @@
+Documentation of needed processor details
+
+Depending on our statisical matrix size input, we need to know the cache size. With the following command you can find out the sizes of each cache, where indexX is which level cache you mean to target, e.g. index1 for the L1 Cache
+
+cat /sys/devices/system/cpu/cpu0/cache/indexX/size
+
+On the single core cluster here are the results:
+
+Double = 8 Byte
+1KB = 128 Doubles
+
+L1 cache = 32KB = 4096 Doubles
+L2 cache = 256KB = 32768 Doubles
+L3 cache = 18432KB = 2359296 Doubles
+
+For each cache level this would mean the matrix have size restrictions. Since we have 4 matrices, each matrice can only be the maximum size of sqrt(X/4), X being the number of doubles that fit up to that cache level
+
+L1 = sqrt(1024) = 32 Doubles
+L2 = 90 Doubles < sqrt(8192) < 91 Doubles
+L3 = sqrt(589824) = 768 Doubles
+
+E.g. for all matrices to fit into L1, the matrix sizes can be max 32x32 large
+
+The largest problem size should be according to the amount of RAM we can get at most on a single machine, which is 24GB Ram for now (Provide proof)
+
+24GB / 4 = 6GB Ram per matrix. Max size would be:
+
+128 Doubles(1KB) x 1024(MB) x 1024(GB)  x 6 = 805306368 Doubles
+
+Size sqrt(805306368) ~ 28374x28374 Doubles
