@@ -15,16 +15,163 @@
 #include <limits.h>
 #include <mkl.h>
 #include <float.h>
+#include <unistd.h>
 
-int factorial(int n) {
 
-    if (n == 0)
-        return 1;
-    return (n*factorial(n-1));
+/* Function to extract the size of the cache level
+ * You intend to have all the matrices fit in the resulting cache level
+ * This function useses the bashscript "cachesize.sh"
+ *
+ * Parameters:
+ *
+ * clevel = cache level which size you want to find out
+ *
+ */
+
+int getCacheSize(int clevel) {
+
+    switch(clevel) {
+
+        case 1:
+        system("cachesize.sh 1");
+        break;
+
+        case 2:
+        system("cachesize.sh 2");
+        break;
+
+        case 3:
+        system("cachesize.sh 3");
+        break;
+
+        default:
+        printf("Invalid case. Case is %d\n\n",clevel);
+
+    }
+
+    //Use buffer to extract the entire contents of our output file
+
+    char *buffer;
+    long length;
+    FILE *f = fopen("lvl.csv", "r");
+
+    if (f) {
+        fseek(f,0,SEEK_END);
+        length = ftell(f);
+        fseek(f,0,SEEK_SET);
+        buffer = malloc(length);
+        
+        if(buffer)
+            fread(buffer,1,length,f);
+        
+        fclose(f);
+    
+    }
+
+    system("rm cachesize.sh"); 
+
+    int csize;
+
+    //Convert to integer value
+
+    if (buffer) {
+        csize = atoi(buffer);
+        printf("%d\n\n",csize);
+    }
+
+    return csize;
+ 
+}
+
+
+/* Function to create our standard statistics file. Only the heads of the columns are written into the file currently
+ *
+ * Parameters:
+ *
+ * n = Number of matrices.
+ *
+ * Return parameter:
+ *
+ * Number of columns the file has, so the string can be examined on number of elements seperated by a comma
+ * Number of columns = #matrix sizes(n+1) + currently five more columns needed
+ *
+ */
+
+int createStatisticsFile(int n) {
+
+    FILE *fp;
+    int i;   
+
+    char *fname = "results.csv";
+
+    //If file exists save the old file
+
+    if (access(fname,F_OK) != -1)
+        system("cd scripts ; renameStatisticsFile.sh");
+
+    printf("Creating new statistics file %s\n\n",fname);
+    
+    fp = fopen(fname,"w+");
+
+    //First parameter doesn't need a comma
+    fprintf(fp,"Size 1");
+
+    for(i=1;i<n;i++)
+        fprintf(fp,",Size %d",i+1);
+
+    fprintf(fp,",Cache Size,Time Floating Point,Time Least Memory Usage,Time Consecutive");
+
+    fclose(fp);
+
+    printf("Finished creating new statistics file!\n\n");
+    
+    int numCol = n+1+5;
+
+    return numCol;
 
 }
 
-/*Function to set randomized matrix sizes between min and max
+/* Function to add a line of statistics to the statistics file
+ *
+ * Parameters:
+ *
+ * buffer = String needed to be appended to the statistics file
+ * row = Current row in the file
+ * numCol = number of columns in the file for error checks
+ *
+ */
+
+void addStatisticsToFile(char *buffer, int numCol) {
+
+    FILE *fp;
+    int i;   
+
+    char *fname = "results.csv";
+
+    //If file exists save the old file
+
+    if (access(fname,F_OK) != -1)
+
+    printf("Adding new statistics to the file! %s\n\n",fname);
+    
+    fp = fopen(fname,"w+");
+
+    //First parameter doesn't need a comma
+    fprintf(fp,"Size 1");
+
+    for(i=1;i<n;i++)
+        fprintf(fp,",Size %d",i+1);
+
+    fprintf(fp,",Cache Size,Time Floating Point,Time Least Memory Usage,Time Consecutive");
+
+    fclose(fp);
+
+    printf("Finished creating new statistics file!\n\n");
+ 
+
+}
+
+/* Function to set randomized matrix sizes between min and max
  *
  * Parameters:
  *
@@ -157,56 +304,16 @@ void initializeMatrices (double **A, double **copyA, int *sizes, int n) {
 
 }
 
-int getCacheSize(int clevel) {
 
-    switch(clevel) {
-
-        case 1:
-        system("cachesize.sh 1");
-        break;
-
-        case 2:
-        system("cachesize.sh 2");
-        break;
-
-        case 3:
-        system("cachesize.sh 3");
-        break;
-
-        default:
-        printf("Invalid case. Case is %d\n\n",clevel);
-
-    }
-
-    char *buffer;
-    long length;
-    FILE *f = fopen("lvl.csv", "r");
-
-    if (f) {
-        fseek(f,0,SEEK_END);
-        length = ftell(f);
-        fseek(f,0,SEEK_SET);
-        buffer = malloc(length);
-        
-        if(buffer)
-            fread(buffer,1,length,f);
-        
-        fclose(f);
-    
-    } 
-
-    int csize;
-
-    if (buffer) {
-        csize = atoi(buffer);
-        printf("%d\n\n",csize);
-    }
-
-    return csize;
- 
-}
+/* Function which is needed to free the cache of all data, due to the occasion of matrices still being in the cache while doing consecutive runs
+ * A simple matrix addition is performed where each matrix is as large as the entire cache
+ *
+ * Parameters: -
+ *
+ */
 
 void cache_scrub() {
+
 
     int csize = getCacheSize(3);
 
@@ -228,6 +335,8 @@ void cache_scrub() {
         
         C[i] = A[i] + B[i];
     }
+
+    //Print a value to prevent optimizing this part of the code
 
     printf("%lf",C[0]);
 
@@ -397,6 +506,25 @@ void getChainOrder(int **split, int *order, int n) {
 
 }
 
+/* Chain order is set to consecutive multiplication order 
+ *
+ * Parameters:
+ *
+ * order - Array where multiplication order is saved
+ * n = Number of matrices
+ */
+
+void setConsecutiveOrder(int *order, int n) {
+
+    int i;
+
+    for(i=0;i<n-1;i++) {
+        order[2*i] = i;
+        order[2*i+1] = i+1;
+    }
+
+}
+
 /* Function for allocating memory for intermediate matrix results
  *
  * Parameters:
@@ -497,7 +625,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
 
     }
 
-    printf("Results: %f\n\n",wtime_sum); 
+    printf("Results: %lf\n\n",wtime_sum); 
     
 }
 
@@ -618,6 +746,10 @@ int main(int argc, char *argv[]) {
 
     initializeMatrices(A,copyA,copySizes,n);
 
+    printf("Creating statistics file...\n\n");
+
+    createStatisticsFile(n);
+
 	printf("Now the evaluation results... \n\n");
 
 	//Now time to evaluate results with the different cost functions. 
@@ -697,7 +829,40 @@ int main(int argc, char *argv[]) {
 
     printf("Finished calculating the chain for minimal memory usage!\n\n");
 
-/********** CACHE OPTIMAL  SECTION **************/
+/********** CACHE OPTIMAL SECTION **************/
+
+
+/********** CONSECUTIVE ORDER SECTION **************/
+
+    printf("At first lets clean up a few things from the last calculation...\n\n");
+    
+    resetCopySizes(sizes,copySizes,n);
+    
+    resetMatricesCopy(A,copyA,copySizes,n);    
+
+	printf("Procedure for consecutve order...\n\n");
+
+    setConsecutiveOrder(order,n);
+
+    printf("The order array is the following: [ ");
+
+    for(i=0; i<n-1; i++) {
+        printf("(%d, %d)", order[2*i], order[2*i+1]);
+    }
+
+	printf(" ]\n\n");
+
+    printf("Setting up the matrices for the intermediate results...\n\n");
+
+    setupInterMatrices(interRes,order,copySizes,n);
+
+    resetCopySizes(sizes,copySizes,n);
+
+    printf("Finally calculating the results...\n\n");
+
+	calculateChain(copyA,interRes,order,copySizes,n);
+
+    printf("Finished calculating the consecutive chain!\n\n");
 
 
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
