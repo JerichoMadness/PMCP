@@ -18,6 +18,90 @@
 #include <unistd.h>
 
 
+/* Assembly function used for the timings.
+ *
+ * Get the number of clock ticks and divide it by the CPU frequence
+ *
+ * Parameters: -
+ *
+ * Return parameter:
+ *
+ * Ticks (unsigned long)
+ *
+ */
+
+#define get_ticks(var) {                                           \
+      unsigned int __a, __d;                                       \
+      asm volatile("rdtsc" : "=a" (__a), "=d" (__d));              \
+      var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
+   } while(0)
+
+/* Enum for error handling
+ *
+ * Further errors can be added!
+ *
+ */
+
+enum _error {
+    
+    E_SUCCESS = 0,
+    E_NULL_POINTER = 1,
+    E_WRONG_PARAMETER_NUMBER = 2,
+    E_INVALID_INPUT = 3,
+    E_FILE_NOT_FOUND = 4,
+    E_UNKNOWN_ERROR = 5    
+
+};
+
+typedef enum _error error_t;
+
+
+/* Datatype needed to provide readable error messages
+ *
+ * Consists of a code number and an error message (As a kind of perror alternative)
+ *
+ */
+
+struct _errordesc {
+    int  code;
+    char *message;
+} errordesc[] = {
+    { E_SUCCESS, "No error" },
+    { E_NULL_POINTER, "Working with a null pointer" },
+    { E_WRONG_PARAMETER_NUMBER, "Wrong number of parameters provided" },
+    { E_INVALID_INPUT, "Invalid input" },
+    { E_FILE_NOT_FOUND, "File not found" },
+    { E_UNKNOWN_ERROR, "Unknown error!"}
+};
+
+/* Function to print out the error message to the user
+ *
+ * Parameters:
+ *
+ * errnum = Error number
+ *
+ * Return parameter:
+ *
+ * Error Message according to the error number
+ *
+ */
+
+
+const char *errorString(error_t errnum) {
+
+    int i;
+    int size = sizeof(errordesc) / sizeof(struct _errordesc);
+
+    //Fetch error message
+    for(i=0;i<size;i++) 
+        if(errordesc[i].code == errnum)
+            return errordesc[i].message;
+
+    //If error not provided return unknown error
+    return errordesc[size-i].message;
+
+}
+
 /* Function to extract the size of the cache level
  * You intend to have all the matrices fit in the resulting cache level
  * This function useses the bashscript "cachesize.sh"
@@ -56,6 +140,7 @@ int getCacheSize(int clevel) {
     FILE *f = fopen("lvl.csv", "r");
 
     if (f) {
+     
         fseek(f,0,SEEK_END);
         length = ftell(f);
         fseek(f,0,SEEK_SET);
@@ -66,9 +151,13 @@ int getCacheSize(int clevel) {
         
         fclose(f);
     
+    } else {
+
+        printf("No file there!\n\n");
+
     }
 
-    system("rm cachesize.sh"); 
+    system("rm lvl.csv"); 
 
     int csize;
 
@@ -136,7 +225,6 @@ int createStatisticsFile(int n) {
  * Parameters:
  *
  * buffer = String needed to be appended to the statistics file
- * row = Current row in the file
  * numCol = number of columns in the file for error checks
  *
  */
@@ -148,27 +236,36 @@ void addStatisticsToFile(char *buffer, int numCol) {
 
     char *fname = "results.csv";
 
-    //If file exists save the old file
+    //If file doesn't exist create it
 
     if (access(fname,F_OK) != -1)
-
-    printf("Adding new statistics to the file! %s\n\n",fname);
+        //TODO Find out a better way how to manage the error here
+        createStatisticsFile(numCol-6);    
     
+    //Number of commata that should be in the buffer
+    int commata = 0;
+
+    for(; *buffer; buffer++)
+        if (*buffer == ',')
+            commata = commata + 1;
+
+
     fp = fopen(fname,"w+");
 
-    //First parameter doesn't need a comma
-    fprintf(fp,"Size 1");
+    if (commata == numCol) {
+   
+        fprintf(fp,"buffer");
+        printf("Finished updating statistics file!\n\n");
 
-    for(i=1;i<n;i++)
-        fprintf(fp,",Size %d",i+1);
+    } else {
 
-    fprintf(fp,",Cache Size,Time Floating Point,Time Least Memory Usage,Time Consecutive");
+        fprintf(fp,"Wrong number of elements in this row: %d", commata);
+        printf("Wrong number of elements in this row: %d", commata);
 
-    fclose(fp);
+    }   
 
-    printf("Finished creating new statistics file!\n\n");
- 
-
+     fclose(fp);
+    
 }
 
 /* Function to set randomized matrix sizes between min and max
@@ -273,7 +370,8 @@ void setupMatrices(double **A, double **copyA, double **interRes, int *sizes, in
         copyA[i] =  (double*) mkl_malloc(sizes[i]*sizes[i+1]*sizeof(double),64);
         
         if(i<n-1)
-            interRes[i] = (double*) mkl_malloc(sizes[i]*sizes[i+1]*sizeof(double),64);
+            //Malloc matrices for consecutive multiplication as default
+            interRes[i] = (double*) mkl_malloc(sizes[0]*sizes[i+2]*sizeof(double),64);
 
     }
 
@@ -352,7 +450,9 @@ void cache_scrub() {
  *
  * 'F' = Minimal Flops
  * 'M' = Least memory usage
- * 'C' = Cache optimal (Keep result matrix in cache) - Start chain with least memory usage
+ * 'C' = Cache optimal (Keep result matrix in cache) - Start chain with most memory usage
+ *
+ * INFO: Cost function 'C' is currently left out of the computations
  *
  * Parameters:
  * 
@@ -416,7 +516,7 @@ void computeChainOrder(int **split, double **cost, int *normSizes, int n, char c
 					
 						case 'M':
 						 //q = scalar costs of child + left/right neighbour
-						 q = cost[i][k] + cost[k+1][j] + ((double) (normSizes[i]*normSizes[k+1] + normSizes[k+1]*normSizes[j+1]));
+						 q = cost[i][k] + cost[k+1][j] + ((double) (normSizes[i]*normSizes[j+1]));
 						 break;
 
 						default:
@@ -565,8 +665,8 @@ void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
 
 void calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
 
-    double wtime_start, wtime_end, wtime_sum;
-    wtime_sum = 0.;
+    unsigned long ticksB4, ticksAfter, ticksSum;
+    ticksSum = 0;
 
     int i,q;
 
@@ -594,7 +694,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
         printf("k is %d\n",k);
         printf("n is %d\n\n",n);*/
 
-        wtime_start = omp_get_wtime();
+        get_ticks(ticksB4);
         
         if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[i]) == NULL)
             printf("Error! One of the matrices is empty!");
@@ -603,11 +703,11 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
 
         //printf("Finished computing\n\n");
 
-        wtime_end = omp_get_wtime();
+        get_ticks(ticksAfter);
 
         //printf("Intermediate time result: %ld\n",(wtime_end - wtime_start));
 
-        wtime_sum = wtime_sum + (wtime_end - wtime_start);
+        ticksSum = ticksSum + (ticksAfter - ticksB4);
 
         double* pointer;
         pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
@@ -625,7 +725,7 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
 
     }
 
-    printf("Results: %lf\n\n",wtime_sum); 
+    printf("Results: %lu\n\n",ticksSum/2100000000); 
     
 }
 
@@ -693,9 +793,16 @@ int main(int argc, char *argv[]) {
     int sizeMin;
     int sizeMax;    
 
+
+    //Check number of arguments and set matrix sizes accordingly
     if (argc == 1) {
-        sizeMin = 1000;
+        sizeMin = 10;
         sizeMax = 5000;
+    } else if (argc == 2) {
+        sizeMin = 10;
+        char *c;
+        int lvl = strtol(argv[2], &c, 10);
+        sizeMax = getCacheSize(lvl);
     } else if (argc == 3) {
         char *c;
         long conv = strtol(argv[1], &c, 10);
@@ -703,7 +810,7 @@ int main(int argc, char *argv[]) {
         conv = strtol(argv[2], &c, 10);
         sizeMax = conv;
     } else {
-        printf("Error. Use either zero or two arguments!");
+        printf("Error. Use the maximum of two arguments!");
     }
 
     double **cost;
