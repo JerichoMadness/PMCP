@@ -16,15 +16,24 @@
 #include <mkl.h>
 #include <float.h>
 #include <unistd.h>
+#include "statistics.h"
 
+int factorial (int n) {
+
+    if(n==1)
+        return n;
+    else
+        return n*factorial(n-1);
+
+}
 
 /* Assembly function used for the timings.
  *
  * Get the number of clock ticks and divide it by the CPU frequence
  *
- * Parameters: -
+ * Arguments: -
  *
- * Return parameter:
+ * Return argument:
  *
  * Ticks (unsigned long)
  *
@@ -46,7 +55,7 @@ enum _error {
     
     E_SUCCESS = 0,
     E_NULL_POINTER = 1,
-    E_WRONG_PARAMETER_NUMBER = 2,
+    E_WRONG_ARGUMENT_NUMBER = 2,
     E_INVALID_INPUT = 3,
     E_FILE_NOT_FOUND = 4,
     E_UNKNOWN_ERROR = 5    
@@ -68,7 +77,7 @@ struct _errordesc {
 } errordesc[] = {
     { E_SUCCESS, "No error" },
     { E_NULL_POINTER, "Working with a null pointer" },
-    { E_WRONG_PARAMETER_NUMBER, "Wrong number of parameters provided" },
+    { E_WRONG_ARGUMENT_NUMBER, "Wrong number of arguments provided" },
     { E_INVALID_INPUT, "Invalid input" },
     { E_FILE_NOT_FOUND, "File not found" },
     { E_UNKNOWN_ERROR, "Unknown error!"}
@@ -76,11 +85,11 @@ struct _errordesc {
 
 /* Function to print out the error message to the user
  *
- * Parameters:
+ * Arguments:
  *
  * errnum = Error number
  *
- * Return parameter:
+ * Return argument:
  *
  * Error Message according to the error number
  *
@@ -106,7 +115,7 @@ const char *errorString(error_t errnum) {
  * You intend to have all the matrices fit in the resulting cache level
  * This function useses the bashscript "cachesize.sh"
  *
- * Parameters:
+ * Arguments:
  *
  * clevel = cache level which size you want to find out
  *
@@ -169,108 +178,12 @@ int getCacheSize(int clevel) {
     }
 
     return csize;
- 
-}
 
-
-/* Function to create our standard statistics file. Only the heads of the columns are written into the file currently
- *
- * Parameters:
- *
- * n = Number of matrices.
- *
- * Return parameter:
- *
- * Number of columns the file has, so the string can be examined on number of elements seperated by a comma
- * Number of columns = #matrix sizes(n+1) + currently five more columns needed
- *
- */
-
-int createStatisticsFile(int n) {
-
-    FILE *fp;
-    int i;   
-
-    char *fname = "results.csv";
-
-    //If file exists save the old file
-
-    if (access(fname,F_OK) != -1)
-        system("cd scripts ; renameStatisticsFile.sh");
-
-    printf("Creating new statistics file %s\n\n",fname);
-    
-    fp = fopen(fname,"w+");
-
-    //First parameter doesn't need a comma
-    fprintf(fp,"Size 1");
-
-    for(i=1;i<n;i++)
-        fprintf(fp,",Size %d",i+1);
-
-    fprintf(fp,",Cache Size,Time Floating Point,Time Least Memory Usage,Time Consecutive");
-
-    fclose(fp);
-
-    printf("Finished creating new statistics file!\n\n");
-    
-    int numCol = n+1+5;
-
-    return numCol;
-
-}
-
-/* Function to add a line of statistics to the statistics file
- *
- * Parameters:
- *
- * buffer = String needed to be appended to the statistics file
- * numCol = number of columns in the file for error checks
- *
- */
-
-void addStatisticsToFile(char *buffer, int numCol) {
-
-    FILE *fp;
-    int i;   
-
-    char *fname = "results.csv";
-
-    //If file doesn't exist create it
-
-    if (access(fname,F_OK) != -1)
-        //TODO Find out a better way how to manage the error here
-        createStatisticsFile(numCol-6);    
-    
-    //Number of commata that should be in the buffer
-    int commata = 0;
-
-    for(; *buffer; buffer++)
-        if (*buffer == ',')
-            commata = commata + 1;
-
-
-    fp = fopen(fname,"w+");
-
-    if (commata == numCol) {
-   
-        fprintf(fp,"buffer");
-        printf("Finished updating statistics file!\n\n");
-
-    } else {
-
-        fprintf(fp,"Wrong number of elements in this row: %d", commata);
-        printf("Wrong number of elements in this row: %d", commata);
-
-    }   
-
-     fclose(fp);
-    
-}
+} 
 
 /* Function to set randomized matrix sizes between min and max
  *
- * Parameters:
+ * Arguments:
  *
  * sizes = Array with matrix sizes
  * copySizes = A copy of sizes
@@ -298,7 +211,7 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
 
 /* Function to reset the changes of copySizes
  *
- * Parameters:
+ * Arguments:
  * sizes = Array with matrix sizes
  * copySizes = A copy of sizes
  * n = Number of matrices
@@ -316,7 +229,7 @@ void resetCopySizes(int *sizes, int *copySizes, int n) {
 
 /* To prevent over-/underflow during cost computation normalize the values by factor (sizeMax/sizeMin)/sizeMax
  *
- * Parameters:
+ * Arguments:
  *
  * sizes = Array with matrix sizes
  * sizeMin/Max = Smallest/largest matrix sizes used to compute factorization factor
@@ -351,7 +264,7 @@ void resetMatricesCopy(double **A, double **copyA, int *sizes, int n) {
 
 /* Function to allocate matrices (as an array of matrices and cost matrix with given the given sizes)
  *
- * Parameters:
+ * Arguments:
  *
  * A = Matrix Array
  * copyA = Copy of A
@@ -380,7 +293,7 @@ void setupMatrices(double **A, double **copyA, double **interRes, int *sizes, in
 
 /* Set random (double) values in all matrices between 0 and 1
  * 
- * Parameters:
+ * Arguments:
  *
  * A = Matrix Array
  * copyA = copy of A
@@ -406,7 +319,7 @@ void initializeMatrices (double **A, double **copyA, int *sizes, int n) {
 /* Function which is needed to free the cache of all data, due to the occasion of matrices still being in the cache while doing consecutive runs
  * A simple matrix addition is performed where each matrix is as large as the entire cache
  *
- * Parameters: -
+ * Arguments: -
  *
  */
 
@@ -444,6 +357,68 @@ void cache_scrub() {
 
 }
 
+
+void swap(int *x, int *y) {
+
+    int temp; 
+    temp = *x; 
+    *x = *y; 
+    *y = temp; 
+
+}
+
+void permute(int **allOrder, int *permChain, int i, int n, int pos) { 
+
+    int k;
+    
+    if (n == i){
+        
+        for(k=0;k<n;k++) {
+
+            allOrder[pos][2*k] = permChain[k];
+            allOrder[pos][2*k+1] = permChain[k+1];
+
+        }
+        
+        return;
+
+    }
+
+    int j = i;
+    for (j = i; j < n; j++) { 
+         swap(permChain+i,permChain+j);
+         permute(allOrder,permChain,i+1,n,pos+1);
+         swap(permChain+i,permChain+j);
+    }
+
+    return;
+}
+
+
+void getAllOrders(int **allOrder, int n) {
+
+    int *permChain = (int*) malloc((n-1)*sizeof(int));
+
+    int i;
+
+        for(i=0;i<n-1;i++)
+        permChain[i] = i;
+
+    permute(allOrder,permChain,0,n-1,0);
+
+    int j;
+    int fac = factorial(n-1);
+
+    for(i=0;i<fac;i++) {
+        printf("[ ");
+        for(j=0;j<n-1;j++) {
+            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][2*j+1]);
+        }
+        printf(" ]\n");
+    }
+
+}
+
 /*Method to obtain the optimal chain order with a standard dynamic programming algorithm
  *
  * Cost function explanations:
@@ -454,7 +429,7 @@ void cache_scrub() {
  *
  * INFO: Cost function 'C' is currently left out of the computations
  *
- * Parameters:
+ * Arguments:
  * 
  * split = Matrix which saves the split positions
  * cost = Matrix which saves the costs of each split
@@ -545,7 +520,7 @@ void computeChainOrder(int **split, double **cost, int *normSizes, int n, char c
 
 /* Recursive part of printing chain. Chain [i,j] is then referenced as chain part [j]
  *
- * Parameters:
+ * Arguments:
  *
  * split = Result matrix from DP which gives a split position for each chain
  * order = Array where the multiplication order is saved
@@ -588,7 +563,7 @@ int getRecursiveChain(int **split, int *order,  int left, int right, int pos) {
 
 /* Iterative function to call recursive function with error handling
  *
- * Parameters:
+ * Arguments:
  * split = Result matrix from DP which gives a split position for each chain
  * order = Array where the multiplication order is saved
  * n = Number of matrices
@@ -608,7 +583,7 @@ void getChainOrder(int **split, int *order, int n) {
 
 /* Chain order is set to consecutive multiplication order 
  *
- * Parameters:
+ * Arguments:
  *
  * order - Array where multiplication order is saved
  * n = Number of matrices
@@ -627,7 +602,7 @@ void setConsecutiveOrder(int *order, int n) {
 
 /* Function for allocating memory for intermediate matrix results
  *
- * Parameters:
+ * Arguments:
  *
  * interRes = Array for the intermediate matrix results
  * order = Multiplication order
@@ -653,7 +628,7 @@ void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
 
 /* Function to calculate the matrix chain and measure the time needed
  *
- * Parameters:
+ * Arguments:
  *
  * A = Matrix Array
  * interRes = Matrix Array for the intermediate results
@@ -738,18 +713,17 @@ int main(int argc, char *argv[]) {
  	*
  	* A = Matrix array
  	* coypA = copy of A
+ 	* Never pass over A as an argument, only copyA!
  	*
  	* interRes = Matrix array for the intermediate results
  	* With the order and sizes the memory will be allocated beforehand
  	* 
  	* n = Size of matrix array (Default 4)
- 	* TODO Request number of matrices and sizes?
  	* 
  	* sizes[n+1] = Size of matrices
  	* copySizes[n+1] = This copy is needed for the functions which evaluate the matrix chain and therefore 
- 	* Never pass over sizes as a parameter, instead use copySizes!
+ 	* Never pass over sizes as an argument, instead use copySizes!
  	*
- 	* normSizes[n+1] = Array with the sizes normalized by a factor. Used for calculations to prevent overflows
  	*
  	* sizeMin,sizeMax = min & max matrix sizes
  	* 
@@ -759,16 +733,19 @@ int main(int argc, char *argv[]) {
  	* a matrix chain (e.g. split[0,2] = 1, the computation is
  	* splitted in position 1
  	* 
- 	* order = Array where the multiplication order is saved
+ 	* optOrder = Array where the optimal multiplication order according to a cost function is saved
+ 	* 
+ 	* allOrders = Matrix where all possible orders are saved. Save the cost of this order at the end of each array
  	*
  	* i,j indices
  	*
- 	* ticks* = time variables
+ 	*
  	**/
 
     int i,j;
 
     int n;
+    //TODO set as variable!
     n = 4;
 
     double **A;
@@ -788,7 +765,6 @@ int main(int argc, char *argv[]) {
 
 	int sizes[n+1];
     int copySizes[n+1];
-    int normSizes[n+1];
 
     int sizeMin;
     int sizeMax;    
@@ -823,7 +799,20 @@ int main(int argc, char *argv[]) {
     for (i=0;i<n;i++)
         split[i] = (int*) malloc((n-i)*sizeof(int));
 
-    int order[2*(n-1)];
+    int optOrder[2*(n-1)];
+
+    int **allOrder;
+    
+    int fac;
+
+    fac  = factorial(n-1);
+
+    printf("Fac is %d\n\n",fac);
+  
+    //For all chain orders there are factorial(n-1) possibilites to multiply them all
+    allOrder = (int**) malloc(fac*sizeof(int));
+    for (i=0;i<fac;i++)
+        allOrder[i] = (int*) malloc(2*(n-1)*sizeof(int));
 
     /**
      *
@@ -843,7 +832,6 @@ int main(int argc, char *argv[]) {
 		printf("size[%d]: [%dx%d]\n", i, sizes[i], sizes[i+1]);
 	}
 
-    normalizeSizes(copySizes,normSizes,sizeMin,sizeMax,n);
 
     printf("\nAllocation memory for matrices...\n\n");
 
@@ -857,7 +845,12 @@ int main(int argc, char *argv[]) {
 
     createStatisticsFile(n);
 
+    printf("Now creaiting all permutation possibilities...\n\n");
+
+    getAllOrders(allOrder,n);
+
 	printf("Now the evaluation results... \n\n");
+
 
 	//Now time to evaluate results with the different cost functions. 
 	//After each cost function rewrite copyA to continue with next matrix
@@ -868,31 +861,34 @@ int main(int argc, char *argv[]) {
 
     printf("Computing costs minimal flops...\n\n");	
 
+ 
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
+  
     computeChainOrder(split,cost,copySizes,n,'F');
 
     resetCopySizes(sizes,copySizes,n);
 
     printf("Computing the best multiplication order...\n\n");
 
-	getChainOrder(split, order, n);
+	getChainOrder(split, optOrder, n);
     
     printf("The order array is the following: [ ");
 
     for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", order[2*i], order[2*i+1]);
+        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
     }
 
 	printf(" ]\n\n");
 
     printf("Setting up the matrices for the intermediate results...\n\n");
 
-    setupInterMatrices(interRes,order,copySizes,n);
+    setupInterMatrices(interRes,optOrder,copySizes,n);
 
     resetCopySizes(sizes,copySizes,n);
 
     printf("Finally calculating the results...\n\n");
 
-	calculateChain(copyA,interRes,order,copySizes,n);
+	calculateChain(copyA,interRes,optOrder,copySizes,n);
 
     printf("Finished calculating the chain for minimal flops \n\n");
 
@@ -908,36 +904,35 @@ int main(int argc, char *argv[]) {
 
     printf("Computing costs for minimal memory usage...\n\n");	
 
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
+
     computeChainOrder(split,cost,copySizes,n,'M');
 
     resetCopySizes(sizes,copySizes,n);
 
     printf("Computing the best multiplication order...\n\n");
 
-	getChainOrder(split, order, n);
+	getChainOrder(split, optOrder, n);
     
     printf("The order array is the following: [ ");
 
     for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", order[2*i], order[2*i+1]);
+        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
     }
 
 	printf(" ]\n\n");
 
     printf("Setting up the matrices for the intermediate results...\n\n");
 
-    setupInterMatrices(interRes,order,copySizes,n);
+    setupInterMatrices(interRes,optOrder,copySizes,n);
 
     resetCopySizes(sizes,copySizes,n);
 
     printf("Finally calculating the results...\n\n");
 
-	calculateChain(copyA,interRes,order,copySizes,n);
+	calculateChain(copyA,interRes,optOrder,copySizes,n);
 
     printf("Finished calculating the chain for minimal memory usage!\n\n");
-
-/********** CACHE OPTIMAL SECTION **************/
-
 
 /********** CONSECUTIVE ORDER SECTION **************/
 
@@ -949,25 +944,25 @@ int main(int argc, char *argv[]) {
 
 	printf("Procedure for consecutve order...\n\n");
 
-    setConsecutiveOrder(order,n);
+    setConsecutiveOrder(optOrder,n);
 
     printf("The order array is the following: [ ");
 
     for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", order[2*i], order[2*i+1]);
+        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
     }
 
 	printf(" ]\n\n");
 
     printf("Setting up the matrices for the intermediate results...\n\n");
 
-    setupInterMatrices(interRes,order,copySizes,n);
+    setupInterMatrices(interRes,optOrder,copySizes,n);
 
     resetCopySizes(sizes,copySizes,n);
 
     printf("Finally calculating the results...\n\n");
 
-	calculateChain(copyA,interRes,order,copySizes,n);
+	calculateChain(copyA,interRes,optOrder,copySizes,n);
 
     printf("Finished calculating the consecutive chain!\n\n");
 
