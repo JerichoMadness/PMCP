@@ -18,18 +18,9 @@
 #include <unistd.h>
 #include "statistics.h"
 
-int factorial (int n) {
-
-    if(n==1)
-        return n;
-    else
-        return n*factorial(n-1);
-
-}
-
 /* Assembly function used for the timings.
  *
- * Get the number of clock ticks and divide it by the CPU frequence
+ * Get the number of clock ticks and later divide it by the CPU frequence
  *
  * Arguments: -
  *
@@ -44,6 +35,51 @@ int factorial (int n) {
       asm volatile("rdtsc" : "=a" (__a), "=d" (__d));              \
       var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
    } while(0)
+
+
+/* Helper function to get the factorial of a number n
+ *
+ * Return value:
+ *
+ * n = Number
+ *
+ */
+
+int factorial (int n) {
+
+    if(n==1)
+        return n;
+    else
+        return n*factorial(n-1);
+
+}
+
+/* Helper function to check if a current number in included in an array
+ *
+ * Arguments::
+ *
+ * array = Array to check
+ * val = Value to check if is included
+ * pos = Position up to where to check *
+ *
+ * Return value:
+ *
+ * (Integer) 0 if value wasn't found, 1 if value was 
+ *
+ */
+
+
+int contains(int *array, int val, int pos) {
+
+    int i;
+
+    for(i=0;i<pos;i++)    
+        if(array[i] == val)
+            return(1);
+    
+    return(0);
+
+}
 
 /* Enum for error handling
  *
@@ -379,10 +415,9 @@ void swap(int *x, int *y) {
  *
  * Parameters:
  *
+ * allOrder = Matrix where all permutated orders are saved in
  * permChain = Integer array that is permutated
- * int i = Current position in integer array
- * int n = number of elements in permChain
- * buffer = char array where all orders are saved
+ * int n = number of elements in permChain (= number of multplications needed to compute the chain
  *
  */
 
@@ -432,6 +467,14 @@ void permute(int **allOrder, int *permChain, int n) {
 
 }
 
+/* Function to extract all permutations of the multiplication order (UNCONVERTED)
+ *
+ * Parameters:
+ *
+ * allOrder = Matrix where all the permutated orders are saved
+ * n = Number of multiplications needed to compute the chain product (!= number of matrices
+ *
+ */
 
 void getAllOrders(int **allOrder, int n) {
 
@@ -446,8 +489,6 @@ void getAllOrders(int **allOrder, int n) {
 
     permute(allOrder,permChain,n);
 
-    printf("Somethings wrong?\n");
-
     for(i=0;i<fac;i++) {
         printf("[ ");
         for(j=0;j<n;j++) {
@@ -457,6 +498,50 @@ void getAllOrders(int **allOrder, int n) {
     }
 
     free(permChain);
+
+}
+
+/* Function to convert all permutated orders
+ * Example: (1,2) is saved in matrix 2, so the multplication (0,1) is converted into (0,2)
+ *
+ * Paramters:
+ *
+ * allOrder = Matrix where all orders are saved
+ * n = Number of matrices
+ *
+ */
+
+void convertOrders(int **allOrder, int n) {
+
+    int i,j,k,fac,contained,val;
+    fac = factorial(n-1);
+
+    for(i=0;i<fac;i++) {
+        for(j=1;j<n-1;j++) {    
+            val = allOrder[i][2*j+1];
+            contained = contains(allOrder[i],val,2*j+1);
+
+            if(contained == 1) {
+                while(contained == 1) {
+                    val = val+1;
+                    contained = contains(allOrder[i],val,2*j+1);
+                }
+                allOrder[i][2*j+1] = val-1;
+            } else
+                allOrder[i][2*j+1] = val;
+        }
+
+    }
+
+    printf("\n\n");
+
+    for(i=0;i<fac;i++) {
+        printf("[ ");
+        for(j=0;j<n-1;j++) {
+            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
+        }
+        printf(" ]\n");
+    }
 
 }
 
@@ -884,6 +969,8 @@ int main(int argc, char *argv[]) {
     printf("Now creaiting all permutation possibilities...\n\n");
 
     getAllOrders(allOrder,n-1);
+
+    convertOrders(allOrder,n);
 
 	printf("Now the evaluation results... \n\n");
 
