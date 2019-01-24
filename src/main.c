@@ -256,10 +256,7 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
 
 void resetCopySizes(int *sizes, int *copySizes, int n) {
 
-    int i;
-    
-    for (i=0;i<n+1;i++)
-        copySizes[i] = sizes[i];
+    memcpy(copySizes,sizes,n*sizeof(int));
 
 }
 
@@ -489,13 +486,13 @@ void getAllOrders(int **allOrder, int n) {
 
     permute(allOrder,permChain,n);
 
-    for(i=0;i<fac;i++) {
+    /*for(i=0;i<fac;i++) {
         printf("[ ");
         for(j=0;j<n;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
-    }
+    }*/
 
     free(permChain);
 
@@ -517,7 +514,9 @@ void convertOrders(int **allOrder, int n) {
     fac = factorial(n-1);
 
     for(i=0;i<fac;i++) {
+        
         for(j=1;j<n-1;j++) {    
+       
             val = allOrder[i][2*j+1];
             contained = contains(allOrder[i],val,2*j+1);
 
@@ -534,7 +533,6 @@ void convertOrders(int **allOrder, int n) {
     }
 
     printf("\n\n");
-
     for(i=0;i<fac;i++) {
         printf("[ ");
         for(j=0;j<n-1;j++) {
@@ -542,6 +540,79 @@ void convertOrders(int **allOrder, int n) {
         }
         printf(" ]\n");
     }
+
+}
+
+/* Function to compute the costs of all chain orders according to the cost function
+ *
+ * Arguments:
+ *
+ * allOrder = Matrix with all stored permuted multiplication orders
+ * orderCost = Array to save all according computation costs
+ * n = Number of matrices
+ * fac = Factorial of n
+ * cf = Cost function
+ *
+ *
+ */
+
+void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, int fac, char cf) {
+
+    int i,j,m,k,l;
+
+    int *copySizes;
+    copySizes = (int*) malloc(n*sizeof(int));
+
+    memcpy(copySizes,normSizes,n*sizeof(int));
+
+    for(i=0;i<fac;i++) {
+        
+        switch(cf) {
+         
+            case'F':
+
+                for(j=0;j<n-1;j++) {
+
+                    m = copySizes[allOrder[i][2*j]];
+                    k = copySizes[allOrder[i][2*j]+1];
+                    l = copySizes[allOrder[i][2*j+1]+1];
+                    
+                    orderCost[i] = orderCost[i] + m*k*l;
+                    
+                    copySizes[allOrder[i][2*j+1]] = m;
+                
+                }
+                
+                break;
+            
+            case'M':
+            
+                for(j=0;j<n-1;j++) {
+
+                    m = copySizes[allOrder[i][2*j]];
+                    n = copySizes[allOrder[i][2*j+1]+1];
+                
+                    orderCost[i] = orderCost[i] + m*l;
+                    
+                    copySizes[allOrder[i][2*j+1]] = m;
+
+                }
+
+                break;
+
+            default:
+                printf("Wrong parameter!");
+
+        }
+
+        resetCopySizes(normSizes,copySizes,n);
+    
+    }
+
+    for(i=0;i<fac;i++)
+        printf("The normed cost is: %d\n",orderCost[i]);
+
+    free(copySizes);
 
 }
 
@@ -935,6 +1006,9 @@ int main(int argc, char *argv[]) {
     for(i=0;i<fac;i++)
         allOrder[i] = (int*) malloc((2*(n-1))*sizeof(int));
 
+    int *orderCost;
+    orderCost = (int*) malloc(fac*sizeof(int));
+
     /**
      *
      * END OF VARIABLES */ 
@@ -971,6 +1045,12 @@ int main(int argc, char *argv[]) {
     getAllOrders(allOrder,n-1);
 
     convertOrders(allOrder,n);
+
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
+
+    computeChainCosts(allOrder,orderCost,copySizes,n,fac,'F');
+
+    resetCopySizes(sizes,copySizes,n);
 
 	printf("Now the evaluation results... \n\n");
 
