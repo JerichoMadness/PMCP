@@ -357,6 +357,14 @@ void cache_scrub() {
 
 }
 
+/* Short function needed to swap to elements of an array
+ *
+ * Parameters:
+ *
+ * *x = First element
+ * *y = Second element
+ *
+ */
 
 void swap(int *x, int *y) {
 
@@ -367,55 +375,88 @@ void swap(int *x, int *y) {
 
 }
 
-void permute(int **allOrder, int *permChain, int i, int n, int pos) { 
+/* Function to save all possible chain order permutations
+ *
+ * Parameters:
+ *
+ * permChain = Integer array that is permutated
+ * int i = Current position in integer array
+ * int n = number of elements in permChain
+ * buffer = char array where all orders are saved
+ *
+ */
 
-    int k;
+void permute(int **allOrder, int *permChain, int n) { 
+
+    int tmp[n];
+
+    int i,j,fac,pos;
+    fac = factorial(n);
+    pos = 0;
+
+    for(i=0;i<n;i++) {
+        tmp[i] = 0;
+        allOrder[pos][2*i] = permChain[i];
+        allOrder[pos][(2*i)+1] = permChain[i]+1;
+    }
+
+    pos = pos+1;
+    i=0;
+
+    while(i<n) {
+        
+        if(tmp[i] < i) {
+   
+            if((i%2) == 0)
+                swap(permChain+0,permChain+i);
+            else
+                swap(permChain+tmp[i],permChain+i);
+            
+            for(j=0;j<n;j++) {
+                allOrder[pos][2*j] = permChain[j];
+                allOrder[pos][(2*j)+1] = permChain[j]+1;
+            }
+
+            
+            tmp[i] = tmp[i]+1;
+            pos = pos+1;
+            i=0;
     
-    if (n == i){
-        
-        for(k=0;k<n;k++) {
-
-            allOrder[pos][2*k] = permChain[k];
-            allOrder[pos][2*k+1] = permChain[k+1];
-
+            
+            
+        } else {
+            tmp[i] = 0;
+            i = i+1;
         }
-        
-        return;
-
     }
 
-    int j = i;
-    for (j = i; j < n; j++) { 
-         swap(permChain+i,permChain+j);
-         permute(allOrder,permChain,i+1,n,pos+1);
-         swap(permChain+i,permChain+j);
-    }
-
-    return;
 }
 
 
 void getAllOrders(int **allOrder, int n) {
 
-    int *permChain = (int*) malloc((n-1)*sizeof(int));
+    int i,j,fac;
+    fac = factorial(n);
 
-    int i;
+    int *permChain;
+    permChain = (int*) malloc((n)*sizeof(int));
 
-        for(i=0;i<n-1;i++)
+    for(i=0;i<n;i++)
         permChain[i] = i;
 
-    permute(allOrder,permChain,0,n-1,0);
+    permute(allOrder,permChain,n);
 
-    int j;
-    int fac = factorial(n-1);
+    printf("Somethings wrong?\n");
 
     for(i=0;i<fac;i++) {
         printf("[ ");
-        for(j=0;j<n-1;j++) {
-            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][2*j+1]);
+        for(j=0;j<n;j++) {
+            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
     }
+
+    free(permChain);
 
 }
 
@@ -801,18 +842,13 @@ int main(int argc, char *argv[]) {
 
     int optOrder[2*(n-1)];
 
-    int **allOrder;
-    
     int fac;
-
     fac  = factorial(n-1);
 
-    printf("Fac is %d\n\n",fac);
-  
-    //For all chain orders there are factorial(n-1) possibilites to multiply them all
-    allOrder = (int**) malloc(fac*sizeof(int));
-    for (i=0;i<fac;i++)
-        allOrder[i] = (int*) malloc(2*(n-1)*sizeof(int));
+    int **allOrder;
+    allOrder = (int**) malloc(n*sizeof(int*));
+    for(i=0;i<fac;i++)
+        allOrder[i] = (int*) malloc((2*(n-1))*sizeof(int));
 
     /**
      *
@@ -843,11 +879,11 @@ int main(int argc, char *argv[]) {
 
     printf("Creating statistics file...\n\n");
 
-    createStatisticsFile(n);
+    //createStatisticsFile(n);
 
     printf("Now creaiting all permutation possibilities...\n\n");
 
-    getAllOrders(allOrder,n);
+    getAllOrders(allOrder,n-1);
 
 	printf("Now the evaluation results... \n\n");
 
