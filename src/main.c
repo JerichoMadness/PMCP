@@ -561,9 +561,9 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
     int i,j,m,k,l;
 
     int *copySizes;
-    copySizes = (int*) malloc(n*sizeof(int));
+    copySizes = (int*) malloc((n+1)*sizeof(int));
 
-    memcpy(copySizes,normSizes,n*sizeof(int));
+    memcpy(copySizes,normSizes,(n+1)*sizeof(int));
 
     for(i=0;i<fac;i++) {
         
@@ -576,7 +576,9 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
                     m = copySizes[allOrder[i][2*j]];
                     k = copySizes[allOrder[i][2*j]+1];
                     l = copySizes[allOrder[i][2*j+1]+1];
-                    
+
+                    printf("m:%d , k:%d ,l:%d\n",m,k,l);                   
+ 
                     orderCost[i] = orderCost[i] + m*k*l;
                     
                     copySizes[allOrder[i][2*j+1]] = m;
