@@ -46,7 +46,11 @@
 
 #define CPU 2100000
 
+/* Value to define the size of level 3 of the CPU cache. Is needed for the cache scrub
+ *
+ */
 
+#define CACHESIZE 18432
 
 /* Function to calculate the matrix chain and measure the time needed
  *
@@ -75,6 +79,10 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
     int m,n,k;
 
     for(i=0;i<j-1;i++) {
+
+        //cache scrub first
+        
+        cache_scrub();
 
         //printf("Still working at the start of it %d\n\n", i);
 
@@ -286,6 +294,18 @@ int main(int argc, char *argv[]) {
 
     computeChainCosts(allOrder,orderCost,copySizes,n,fac,'F');
 
+    //sortChainCosts(allOrder,orderCost,n);
+
+    for(i=0;i<fac;i++) {
+        printf("[ ");
+        for(j=0;j<n-1;j++) {
+            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
+        }
+        printf(" ]: %d cost\n",orderCost[i]);
+    }
+
+    printf("\n\n");
+
     resetCopySizes(sizes,copySizes,n);
 
     for(i=0;i<fac;i++) {
@@ -304,119 +324,9 @@ int main(int argc, char *argv[]) {
         
         resetMatricesCopy(A,copyA,copySizes,n);
 
+        resetCopySizes(sizes,copySizes,n);
+
     }
-
-
-/**********  MINIMAL FLOPS SECTION **************/
-
-/*	printf("Procedure for minimal flops...\n\n");
-
-    printf("Computing costs minimal flops...\n\n");	
-
- 
-    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
-  
-    computeChainOrder(split,cost,copySizes,n,'F');
-
-    resetCopySizes(sizes,copySizes,n);
-
-    printf("Computing the best multiplication order...\n\n");
-
-	getChainOrder(split, optOrder, n);
-    
-    printf("The order array is the following: [ ");
-
-    for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
-    }
-
-	printf(" ]\n\n");
-
-    printf("Setting up the matrices for the intermediate results...\n\n");
-
-    setupInterMatrices(interRes,optOrder,copySizes,n);
-
-    resetCopySizes(sizes,copySizes,n);
-
-    printf("Finally calculating the results...\n\n");
-
-	calculateChain(copyA,interRes,optOrder,copySizes,n);
-
-    printf("Finished calculating the chain for minimal flops \n\n");
-
-********** MINIMAL MEMORY USAGE SECTION **************/
-
-/*    printf("At first lets clean up a few things from the last calculation...\n\n");
-    
-    resetCopySizes(sizes,copySizes,n);
-    
-    resetMatricesCopy(A,copyA,copySizes,n);    
-
-	printf("Procedure for minimum minimal memory usage...\n\n");
-
-    printf("Computing costs for minimal memory usage...\n\n");	
-
-    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
-
-    computeChainOrder(split,cost,copySizes,n,'M');
-
-    resetCopySizes(sizes,copySizes,n);
-
-    printf("Computing the best multiplication order...\n\n");
-
-	getChainOrder(split, optOrder, n);
-    
-    printf("The order array is the following: [ ");
-
-    for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
-    }
-
-	printf(" ]\n\n");
-
-    printf("Setting up the matrices for the intermediate results...\n\n");
-
-    setupInterMatrices(interRes,optOrder,copySizes,n);
-
-    resetCopySizes(sizes,copySizes,n);
-
-    printf("Finally calculating the results...\n\n");
-
-	calculateChain(copyA,interRes,optOrder,copySizes,n);
-
-    printf("Finished calculating the chain for minimal memory usage!\n\n");
-
-********** CONSECUTIVE ORDER SECTION **************/
-
-/*    printf("At first lets clean up a few things from the last calculation...\n\n");
-    
-    resetCopySizes(sizes,copySizes,n);
-    
-    resetMatricesCopy(A,copyA,copySizes,n);    
-
-	printf("Procedure for consecutve order...\n\n");
-
-    setConsecutiveOrder(optOrder,n);
-
-    printf("The order array is the following: [ ");
-
-    for(i=0; i<n-1; i++) {
-        printf("(%d, %d)", optOrder[2*i], optOrder[2*i+1]);
-    }
-
-	printf(" ]\n\n");
-
-    printf("Setting up the matrices for the intermediate results...\n\n");
-
-    setupInterMatrices(interRes,optOrder,copySizes,n);
-
-    resetCopySizes(sizes,copySizes,n);
-
-    printf("Finally calculating the results...\n\n");
-
-	calculateChain(copyA,interRes,optOrder,copySizes,n);
-
-    printf("Finished calculating the consecutive chain!\n\n");*/
 
 
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
@@ -426,6 +336,7 @@ int main(int argc, char *argv[]) {
         mkl_free(interRes[i]);
         //free(cost[i]);
         //free(split[i]);
+        //free(allOrder[i]);
     }
 
     mkl_free(A);
@@ -433,6 +344,8 @@ int main(int argc, char *argv[]) {
 
     //free(cost);
     //free(split);
+    //free(allOrder);
+    //free(orderCost);
 
 	printf("Done! \n\n\n");
 

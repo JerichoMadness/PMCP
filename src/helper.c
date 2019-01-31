@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#define CACHESIZE 18432
+
 /* Helper function to get the factorial of a number n
  *
  * Return value:
@@ -41,15 +43,15 @@ int getCacheSize(int clevel) {
     switch(clevel) {
 
         case 1:
-        system("cachesize.sh 1");
+        system("cd scripts; cachesize.sh 1");
         break;
 
         case 2:
-        system("cachesize.sh 2");
+        system("cd scripts; cachesize.sh 2");
         break;
 
         case 3:
-        system("cachesize.sh 3");
+        system("cd scripts; cachesize.sh 3");
         break;
 
         default:
@@ -61,7 +63,7 @@ int getCacheSize(int clevel) {
 
     char *buffer;
     long length;
-    FILE *f = fopen("lvl.csv", "r");
+    FILE *f = fopen("scripts/lvl.csv", "r");
 
     if (f) {
      
@@ -81,7 +83,7 @@ int getCacheSize(int clevel) {
 
     }
 
-    system("rm lvl.csv"); 
+    system("rm scripts/lvl.csv"); 
 
     int csize;
 
@@ -99,7 +101,7 @@ int getCacheSize(int clevel) {
 void cache_scrub() {
 
 
-    int csize = getCacheSize(3);
+    int csize = CACHESIZE;
 
     int n = (int) sqrt(csize);
 
@@ -122,7 +124,7 @@ void cache_scrub() {
 
     //Print a value to prevent optimizing this part of the code
 
-    printf("%lf",C[0]);
+    printf("Cache scrub: %lf\n\n",C[0]);
 
     free(A);
     free(B);

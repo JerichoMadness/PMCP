@@ -156,16 +156,41 @@ void convertOrders(int **allOrder, int n) {
 
     }
 
-    printf("\n\n");
-    for(i=0;i<fac;i++) {
+    /*for(i=0;i<fac;i++) {
         printf("[ ");
         for(j=0;j<n-1;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
-    }
+    }*/
 
 }
+
+void sortChainCosts(int **allOrder, int *orderCost, int n) {
+
+    int i;
+
+    // Base case 
+    if (n == 1) 
+        return; 
+    
+    // One pass of bubble sort. After this pass, the largest element is moved (or bubbled) to end. 
+    for (i=0; i<n-1; i++)
+        if (orderCost[i] > orderCost[i+1]) { 
+            printf("What?\n"); 
+            swap(orderCost[i], orderCost[i+1]); 
+            int *pointer = malloc(2*(n-1)*sizeof(int));
+            pointer = allOrder[i];
+            allOrder[i] = allOrder[i+1];
+            allOrder[i+1] = pointer;
+            free(pointer);
+        }
+                                                     
+    // Largest element is fixed, 
+    // recur for remaining array 
+    sortChainCosts(allOrder, orderCost, n-1); 
+
+  }
 
 /* Function to compute the costs of all chain orders according to the cost function
  *
@@ -235,8 +260,8 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
     
     }
 
-    for(i=0;i<fac;i++)
-        printf("The normed cost is: %d\n",orderCost[i]);
+    /*for(i=0;i<fac;i++)
+        printf("The normed cost is: %d\n",orderCost[i]);*/
 
     free(copySizes);
 
