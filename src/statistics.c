@@ -3,46 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 
-void createStatisticString(char *statString, char *sizeString, int *order, int costFP, int costMEM, unsigned long timeMeasure, int n) {
-    
-    int i;
-
-    char *orderString;
-    orderString = malloc(20*n*sizeof(char));
-    char *tmp;
-    tmp = malloc(512*sizeof(char));
-
-    sprintf(statString,"");
-
-    strcat(statString,sizeString);
-
-    sprintf(tmp,",[");
-    strcat(statString,tmp);
-
-    sprintf(orderString,"");
-
-    for(i=0;i<n-1;i++) {
-        sprintf(tmp,"(%dx%d)",order[2*i],order[2*i+1]);
-        strcat(orderString,tmp);
-    }
-
-    strcat(statString,orderString);
-
-    sprintf(tmp,"],");
-    strcat(statString,tmp);
-
-    sprintf(tmp,"%d,%d,%d",costFP,costMEM,timeMeasure);
-
-    strcat(statString,tmp);
-
-    printf("%s\n\n",statString);
-
-    free(orderString);
-    free(tmp);
-
-}
-
-
 /* Function to create the redundant part of the string (matrix sizes) that is added to 
  * the statistics file
  *
@@ -70,6 +30,66 @@ void createSizeString (char *sizeString, int *sizes, int n) {
 
     free(tmp);
 }
+
+/* Function to create the entire string for the statistics file with all relevant information
+ *
+ * Arguments:
+ *
+ * statString = Resulting string to be added to the statistic file
+ * sizeString = Redundant string with all matrix sizes
+ * order = The multiplication order
+ * costFP = Multiplication cost according to floating-point cost function with that order
+ * rankFP = Rank for that cost
+ * costMEM = Memory Usage cost function accordingly
+ * rankMEM = According rank
+ * timeMeasure = Measured time in milliseconds
+ * int n = Number of matrices
+ *
+ */
+
+void createStatisticString(char *statString, char *sizeString, int *order, int costFP, int rankFP, int costMEM, int rankMEM, unsigned long timeMeasure, int n) {
+    
+    int i;
+
+    char *orderString;
+    orderString = malloc(20*n*sizeof(char));
+    char *tmp;
+    tmp = malloc(512*sizeof(char));
+
+    //Start with empty string
+    sprintf(statString,"");
+
+    //Append sizes
+    strcat(statString,sizeString);
+
+    //Create temporary order string
+    sprintf(orderString,"");
+
+    for(i=0;i<n-1;i++) {
+        sprintf(tmp,"(%dx%d)",order[2*i],order[2*i+1]);
+        strcat(orderString,tmp);
+    }
+
+    //Append multiplication order
+    sprintf(tmp,",[");
+    strcat(statString,tmp);
+
+    strcat(statString,orderString);
+
+    sprintf(tmp,"],");
+    strcat(statString,tmp);
+
+    //Append rest of the values
+    sprintf(tmp,"%d,%d,%d,%d,%d",costFP,rankFP,costMEM,rankMEM,timeMeasure);
+
+    strcat(statString,tmp);
+
+    free(orderString);
+    free(tmp);
+
+}
+
+
 
 /* Function to create our standard statistics file. Only the heads of the columns are written into the file currently
  *
@@ -106,13 +126,13 @@ int createStatisticsFile(int n) {
     for(i=1;i<n+1;i++)
         fprintf(fp,",Size%d",i+1);
 
-    fprintf(fp,",Order,FP Cost,Least Memory Cost,Time");
+    fprintf(fp,",Order,FP Cost,FP Rank,Memory Cost,Memory Rank,Time");
 
     fclose(fp);
 
     printf("Finished creating new statistics file!\n\n");
     
-    int numCol = n+1+4;
+    int numCol = n+1+6;
 
     return numCol;
 

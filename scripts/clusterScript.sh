@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### jobname
-#BSUB -J Test
+#BSUB -J interactive
 
 ### output file
 #BSUB -o testOut.%J
@@ -10,26 +10,14 @@
 #BSUB -W 0:20
 
 ### memory constraint
-#BSUB -M 200000
+#BSUB -M 2000
+
+### which processor
+###BSUB -R select"[model=<Broadwell_EP>]"
 
 ### send email when finished
 #BSUB -N
 
-### exclusive node
-#BSUB -x
-
-### openmp
-#BSUB -a openmp
-
-### number of cores
-#BSUB -n 1
-
-### mpi-s node
-#BSUB -m mpi-s
-
-###export OMP_NUM_THREADS=1
-###export MKL_NUM_THREADS=$OMP_NUM_THREADS
-
-cd $HOME/PMCP/Code/
-time ./out.x 10000 50000
+cd $HOME/PMCP/
+time build/out.x
 

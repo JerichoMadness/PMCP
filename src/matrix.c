@@ -241,7 +241,7 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
                 for(j=0;j<n-1;j++) {
 
                     m = copySizes[allOrder[i][2*j]];
-                    n = copySizes[allOrder[i][2*j+1]+1];
+                    l = copySizes[allOrder[i][2*j+1]+1];
                 
                     orderCost[i] = orderCost[i] + m*l;
                     

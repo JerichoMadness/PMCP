@@ -44,7 +44,7 @@
  *
  */
 
-#define CPU 2100000
+#define CPU 2200000
 
 /* Value to define the size of level 3 of the CPU cache. Is needed for the cache scrub
  *
@@ -206,6 +206,7 @@ int main(int argc, char *argv[]) {
     if (argc == 1) {
         sizeMin = 10;
         sizeMax = 5000;
+
     } else if (argc == 2) {
         sizeMin = 10;
         char *c;
@@ -231,8 +232,6 @@ int main(int argc, char *argv[]) {
     for (i=0;i<n;i++)
         split[i] = (int*) malloc((n-i)*sizeof(int));
 
-    int optOrder[2*(n-1)];
-
     int fac;
     fac  = factorial(n-1);
 
@@ -244,8 +243,14 @@ int main(int argc, char *argv[]) {
     int *orderCostFP;
     orderCostFP = (int*) malloc(fac*sizeof(int));
 
+    int *rankFP;
+    rankFP = (int*) malloc(fac*sizeof(int));
+
     int *orderCostMEM;
     orderCostMEM = (int*) malloc(fac*sizeof(int));
+
+    int *rankMEM;
+    rankMEM = (int*) malloc(fac*sizeof(int));
 
     unsigned long timeMeasure;
 
@@ -311,36 +316,42 @@ int main(int argc, char *argv[]) {
     normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
 
     computeChainCosts(allOrder,orderCostFP,copySizes,n,fac,'F');
+
+    rankElements(orderCostFP,rankFP,fac);
     
     computeChainCosts(allOrder,orderCostMEM,copySizes,n,fac,'M');
 
-    //sortChainCosts(allOrder,orderCost,n);
+    rankElements(orderCostMEM,rankMEM,fac);
 
     resetCopySizes(sizes,copySizes,n);
 
     for(i=0;i<fac;i++) {
 
-        printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
+        for(j=0;j<20;j++) {
 
-        setupInterMatrices(interRes,allOrder[i],copySizes,n);
+            printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
 
-        resetCopySizes(sizes,copySizes,n);
+            setupInterMatrices(interRes,allOrder[i],copySizes,n);
 
-        printf("Finally calculating the results...\n\n");
+            resetCopySizes(sizes,copySizes,n);
 
-	    timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes,n);
+            printf("Finally calculating the results...\n\n");
 
-        printf("Finished calculating the chain for minimal flops! \n\n");
-        
-        resetMatricesCopy(A,copyA,copySizes,n);
+            timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes,n);
 
-        resetCopySizes(sizes,copySizes,n);
+            printf("Finished calculating the chain for minimal flops! \n\n");
+            
+            resetMatricesCopy(A,copyA,copySizes,n);
 
-        printf("Quickly adding the statistics...\n\n");
+            resetCopySizes(sizes,copySizes,n);
 
-        createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],orderCostMEM[i],timeMeasure,n);
-       
-        addStatisticsToFile(statString,statString,numCol); 
+            printf("Quickly adding the statistics...\n\n");
+
+            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,n);
+           
+            addStatisticsToFile(statString,statString,numCol); 
+
+        }
 
     }
 

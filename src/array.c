@@ -33,6 +33,62 @@ int contains(int *array, int val, int pos) {
 
 }
 
+/* Short function needed to swap to elements of an array
+ *
+ * Parameters:
+ *
+ * *x = First element
+ * *y = Second element
+ *
+ */
+
+void swap(int *x, int *y) {
+
+    int temp; 
+    temp = *x; 
+    *x = *y; 
+    *y = temp; 
+
+}
+
+/* Function to sort the ranks of the costs of each cost function via bubblesort
+ *
+ * Arguments:
+ *
+ * cost = Costs of each multiplication order
+ * rank = Rank of each cost
+ *
+ */
+
+void rankElements(int *cost, int *rank, int n) { 
+
+    int i, j; 
+
+    int *tmp;
+    tmp = malloc(n*sizeof(int));
+
+    //Use a tmp array to avoid rearranging original order
+    for (i = 0; i < n; i++) {
+        rank[i] = i+1;       
+        tmp[i] = cost[i];
+    }
+
+    //Last i elements are already in place    
+
+    for(i=0;i<n-1;i++) {
+        for (j = 0; j < n-i-1; j++) {  
+            if (tmp[j] > tmp[j+1]) {
+                swap(tmp+j, tmp+j+1);
+                swap(rank+j, rank+j+1);
+            }
+        }
+    }
+
+    free(tmp);
+
+} 
+
+
 
 /* Function to set randomized matrix sizes between min and max
  *
@@ -104,23 +160,6 @@ void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n)
  *
  */
 
-/* Short function needed to swap to elements of an array
- *
- * Parameters:
- *
- * *x = First element
- * *y = Second element
- *
- */
-
-void swap(int *x, int *y) {
-
-    int temp; 
-    temp = *x; 
-    *x = *y; 
-    *y = temp; 
-
-}
 
 /* Function to save all possible chain order permutations
  *
