@@ -161,7 +161,7 @@ void addStatisticsToFile(char *buffer, char *cpyBuffer, int numCol) {
     //    createStatisticsFile(numCol-6);    
         //TODO Find out a better way how to manage the error here
 
-    //Number of commata that should be in the buffer
+    //Number of commata = numRows that should be in the buffer
     int commata = 0;
 
     for(; *cpyBuffer; cpyBuffer++)

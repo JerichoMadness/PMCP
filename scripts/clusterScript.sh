@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### jobname
-#BSUB -J interactive
+#BSUB -J ChainJob[1-50]%1
 
 ### output file
 #BSUB -o testOut.%J

@@ -6,7 +6,7 @@
 #include <string.h>
 
 
-/* Helper function to check if a current number in included in an array
+/* Helper function to check if a current number is included in an array
  *
  * Arguments:
  *
@@ -33,7 +33,7 @@ int contains(int *array, int val, int pos) {
 
 }
 
-/* Short function needed to swap to elements of an array
+/* Function that swaps to elements of an array
  *
  * Parameters:
  *
@@ -58,6 +58,7 @@ void swap(int *x, int *y) {
  * cost = Costs of each multiplication order
  * rank = Rank of each cost
  *
+ *
  */
 
 void rankElements(int *cost, int *rank, int n) { 
@@ -68,10 +69,8 @@ void rankElements(int *cost, int *rank, int n) {
     tmp = malloc(n*sizeof(int));
 
     //Use a tmp array to avoid rearranging original order
-    for (i = 0; i < n; i++) {
-        rank[i] = i+1;       
+    for (i = 0; i < n; i++) 
         tmp[i] = cost[i];
-    }
 
     //Last i elements are already in place    
 
@@ -79,9 +78,18 @@ void rankElements(int *cost, int *rank, int n) {
         for (j = 0; j < n-i-1; j++) {  
             if (tmp[j] > tmp[j+1]) {
                 swap(tmp+j, tmp+j+1);
-                swap(rank+j, rank+j+1);
             }
         }
+    }
+
+    int pos;
+    
+    //Now map according ranks to the original array
+    for(i=0;i<n;i++) {
+        pos = 0;
+        while(cost[i] != tmp[pos])
+            pos = pos+1;
+        rank[i] = pos+1;
     }
 
     free(tmp);

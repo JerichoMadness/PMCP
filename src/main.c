@@ -52,6 +52,12 @@
 
 #define CACHESIZE 18432
 
+/* Value how many matrices are used
+ *
+ */
+
+#define N 4
+
 /* Function to calculate the matrix chain and measure the time needed
  *
  * Arguments:
@@ -64,12 +70,12 @@
  *
  */
 
-unsigned long calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
+unsigned long calculateChain(double **A, double **interRes, int *order, int *sizes)  {
 
     unsigned long ticksB4, ticksAfter, ticksSum;
     ticksSum = 0;
 
-    int i,q;
+    int i;
 
     int posX,posY;
 
@@ -78,7 +84,7 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
     beta = 0.0;
     int m,n,k;
 
-    for(i=0;i<j-1;i++) {
+    for(i=0;i<N-1;i++) {
 
         //cache scrub first
         
@@ -150,24 +156,29 @@ int main(int argc, char *argv[]) {
  	* interRes = Matrix array for the intermediate results
  	* With the order and sizes the memory will be allocated beforehand
  	* 
- 	* n = Size of matrix array (Default 4)
- 	* 
- 	* sizes[n+1] = Size of matrices
- 	* copySizes[n+1] = This copy is needed for the functions which evaluate the matrix chain and therefore 
+ 	* sizes = Size of matrices
+ 	* copySizes = This copy is needed for the functions which evaluate the matrix chain and therefore 
  	* Never pass over sizes as an argument, instead use copySizes!
  	*
- 	*
  	* sizeMin,sizeMax = min & max matrix sizes
+ 	*
+ 	* cost (CURRENTLY OBSOLETE) = Matrix used to compute optimal costs via dynamic programming
  	* 
- 	* cost = Matrix used to compute optimal costs via dynamic programming
- 	* 
- 	* split = Matrix which saves the split position of computing
+ 	* split (CURRENTLY OBSOLETE) = Matrix which saves the split position of computing
  	* a matrix chain (e.g. split[0,2] = 1, the computation is
  	* splitted in position 1
- 	* 
- 	* optOrder = Array where the optimal multiplication order according to a cost function is saved
+ 	*
+ 	* fac = fac(N-1) -> Number of possible multiplication orders
  	* 
  	* allOrders = Matrix where all possible orders are saved. Save the cost of this order at the end of each array
+ 	*
+ 	* orderCost[FP/MEM] = Array that saves the according cost of that multiplicationOrder according to the cost function
+ 	* rank[FP/MEM] = Rank of according cost (After being sorted)
+ 	*
+ 	* statString = String which will include all values needed for the statistics. Will be printed into output file
+ 	* sizeString = Redundant part of statString which is the part of all matrix sizes
+ 	*
+ 	* numCol = Number of columns in our statistic file. Used to catch errors if there aren't enough elements in statString
  	*
  	* i,j indices
  	*
@@ -176,17 +187,13 @@ int main(int argc, char *argv[]) {
 
     int i,j;
 
-    int n;
-    //TODO set as variable!
-    n = 4;
-
     double **A;
     double **copyA;
-    A = (double **) mkl_malloc(n*sizeof(double*),64);
-    copyA = (double **) mkl_malloc(n*sizeof(double*),64);
+    A = (double **) mkl_malloc(N*sizeof(double*),64);
+    copyA = (double **) mkl_malloc(N*sizeof(double*),64);
 
     double **interRes;
-    interRes = (double **) mkl_malloc(n*sizeof(double*),64);
+    interRes = (double **) mkl_malloc(N*sizeof(double*),64);
 	
     if ((A == NULL) || (interRes == NULL)) {
 	
@@ -195,8 +202,8 @@ int main(int argc, char *argv[]) {
 
 	}
 
-	int sizes[n+1];
-    int copySizes[n+1];
+	int sizes[N+1];
+    int copySizes[N+1];
 
     int sizeMin;
     int sizeMax;    
@@ -222,23 +229,23 @@ int main(int argc, char *argv[]) {
         printf("Error. Use the maximum of two arguments!");
     }
 
-    double **cost;
-    cost = (double**) malloc(n*sizeof(double*));
-    for (i=0;i<n;i++)
-        cost[i] = (double*) malloc((n-i)*sizeof(double));    
+/*    double **cost;
+    cost = (double**) malloc(N*sizeof(double*));
+    for (i=0;i<N;i++)
+        cost[i] = (double*) malloc((N-i)*sizeof(double));    
 
     int **split;
-    split = (int**) malloc(n*sizeof(int*));
-    for (i=0;i<n;i++)
-        split[i] = (int*) malloc((n-i)*sizeof(int));
+    split = (int**) malloc(N*sizeof(int*));
+    for (i=0;i<N;i++)
+        split[i] = (int*) malloc((N-i)*sizeof(int));*/
 
     int fac;
-    fac  = factorial(n-1);
+    fac  = factorial(N-1);
 
     int **allOrder;
-    allOrder = (int**) malloc(n*sizeof(int*));
+    allOrder = (int**) malloc(N*sizeof(int*));
     for(i=0;i<fac;i++)
-        allOrder[i] = (int*) malloc((2*(n-1))*sizeof(int));
+        allOrder[i] = (int*) malloc((2*(N-1))*sizeof(int));
 
     int *orderCostFP;
     orderCostFP = (int*) malloc(fac*sizeof(int));
@@ -256,10 +263,10 @@ int main(int argc, char *argv[]) {
 
     //TODO Try to find a better value for those chars?
     char *statString;
-    statString = malloc(10*n+512*sizeof(char));    
+    statString = malloc(10*N+512*sizeof(char));    
 
     char *sizeString;
-    sizeString = malloc(10*n*sizeof(char));
+    sizeString = malloc(10*N*sizeof(char));
 
     int numCol;
 
@@ -274,33 +281,33 @@ int main(int argc, char *argv[]) {
 
     printf("Creating matrix sizes...\n\n");   
 
-    setMatrixSizes(sizes,copySizes,n,sizeMin,sizeMax);
+    setMatrixSizes(sizes,copySizes,N,sizeMin,sizeMax);
 
 	printf("The matrix sizes are:\n");
-	for (i=0; i<n; i++) {
+	for (i=0; i<N; i++) {
 		printf("size[%d]: [%dx%d]\n", i, sizes[i], sizes[i+1]);
 	}
 
 
     printf("\nAllocation memory for matrices...\n\n");
 
-	setupMatrices(A,copyA,interRes,copySizes,n);
+	setupMatrices(A,copyA,interRes,copySizes,N);
 
     printf("Creating matrices with random values...\n\n");
 
-    initializeMatrices(A,copyA,copySizes,n);
+    initializeMatrices(A,copyA,copySizes,N);
 
     printf("Creating statistics file...\n\n");
 
-    numCol = createStatisticsFile(n);
+    numCol = createStatisticsFile(N);
 
-    createSizeString(sizeString,sizes,n);
+    createSizeString(sizeString,sizes,N);
 
     printf("Now creaiting all permutation possibilities...\n\n");
 
-    getAllOrders(allOrder,n-1);
+    getAllOrders(allOrder,N-1);
 
-    convertOrders(allOrder,n);
+    convertOrders(allOrder,N);
 
 	printf("Now the evaluation results... \n\n");
 
@@ -313,17 +320,17 @@ int main(int argc, char *argv[]) {
 
     printf("Now computing all costs for minimum flops...\n\n");
 
-    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
 
-    computeChainCosts(allOrder,orderCostFP,copySizes,n,fac,'F');
+    computeChainCosts(allOrder,orderCostFP,copySizes,N,fac,'F');
 
     rankElements(orderCostFP,rankFP,fac);
     
-    computeChainCosts(allOrder,orderCostMEM,copySizes,n,fac,'M');
+    computeChainCosts(allOrder,orderCostMEM,copySizes,N,fac,'M');
 
     rankElements(orderCostMEM,rankMEM,fac);
 
-    resetCopySizes(sizes,copySizes,n);
+    resetCopySizes(sizes,copySizes,N);
 
     for(i=0;i<fac;i++) {
 
@@ -331,23 +338,23 @@ int main(int argc, char *argv[]) {
 
             printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
 
-            setupInterMatrices(interRes,allOrder[i],copySizes,n);
+            setupInterMatrices(interRes,allOrder[i],copySizes,N);
 
-            resetCopySizes(sizes,copySizes,n);
+            resetCopySizes(sizes,copySizes,N);
 
             printf("Finally calculating the results...\n\n");
 
-            timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes,n);
+            timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes);
 
             printf("Finished calculating the chain for minimal flops! \n\n");
             
-            resetMatricesCopy(A,copyA,copySizes,n);
+            resetMatricesCopy(A,copyA,copySizes,N);
 
-            resetCopySizes(sizes,copySizes,n);
+            resetCopySizes(sizes,copySizes,N);
 
             printf("Quickly adding the statistics...\n\n");
 
-            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,n);
+            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,N);
            
             addStatisticsToFile(statString,statString,numCol); 
 
@@ -358,7 +365,7 @@ int main(int argc, char *argv[]) {
 
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
 
-	for (i=0; i<n; i++) {
+	for (i=0; i<N; i++) {
     	mkl_free(A[i]);
         mkl_free(interRes[i]);
         //free(cost[i]);
@@ -372,9 +379,10 @@ int main(int argc, char *argv[]) {
     //free(cost);
     //free(split);
     //free(allOrder);
-    //free(orderCost);
     free(orderCostFP);
+    free(rankFP);
     free(orderCostMEM);
+    free(rankMEM);
     free(statString);
     free(sizeString);
 

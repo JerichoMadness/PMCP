@@ -166,32 +166,6 @@ void convertOrders(int **allOrder, int n) {
 
 }
 
-void sortChainCosts(int **allOrder, int *orderCost, int n) {
-
-    int i;
-
-    // Base case 
-    if (n == 1) 
-        return; 
-    
-    // One pass of bubble sort. After this pass, the largest element is moved (or bubbled) to end. 
-    for (i=0; i<n-1; i++)
-        if (orderCost[i] > orderCost[i+1]) { 
-            printf("What?\n"); 
-            swap(orderCost[i], orderCost[i+1]); 
-            int *pointer = malloc(2*(n-1)*sizeof(int));
-            pointer = allOrder[i];
-            allOrder[i] = allOrder[i+1];
-            allOrder[i+1] = pointer;
-            free(pointer);
-        }
-                                                     
-    // Largest element is fixed, 
-    // recur for remaining array 
-    sortChainCosts(allOrder, orderCost, n-1); 
-
-  }
-
 /* Function to compute the costs of all chain orders according to the cost function
  *
  * Arguments:
@@ -267,7 +241,9 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
 }
 
-/*Method to obtain the optimal chain order with a standard dynamic programming algorithm
+/* ##############CURRENTLY OBSOLETE############
+ *
+ *Method to obtain the optimal chain order with a standard dynamic programming algorithm
  *
  * Cost function explanations:
  *
@@ -286,7 +262,9 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
  * fac = Length of split/cost ((n-1)!)
  * cf = Char to indicate which cost function
  *
+ * ##############CURRENTLY OBSOLETE############
  */
+
 
 void computeChainOrder(int **split, double **cost, int *normSizes, int n, char cf) {
 
