@@ -15,7 +15,9 @@ int main() {
 
     FILE *fp;
     int i,j;
-   
+
+    char *str = "This is an example";  
+ 
     char *fname = "results.csv";
 
     if (access(fname,F_OK) != -1) {
@@ -24,6 +26,7 @@ int main() {
 
         for(i=0;i<4;i++) {
             fprintf(fp,"\n%d",i);
+            fprintf(fp,"%s",str);
             for(j=0;j<5;j++)
                 fprintf(fp,",%d",j*j);
 

@@ -64,7 +64,7 @@
  *
  */
 
-void calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
+unsigned long calculateChain(double **A, double **interRes, int *order, int *sizes, int j)  {
 
     unsigned long ticksB4, ticksAfter, ticksSum;
     ticksSum = 0;
@@ -131,7 +131,9 @@ void calculateChain(double **A, double **interRes, int *order, int *sizes, int j
     }
 
     printf("Results: %lu\n\n",ticksSum/CPU); 
-    
+   
+    return(ticksSum/CPU);
+     
 }
 
 
@@ -239,8 +241,22 @@ int main(int argc, char *argv[]) {
     for(i=0;i<fac;i++)
         allOrder[i] = (int*) malloc((2*(n-1))*sizeof(int));
 
-    int *orderCost;
-    orderCost = (int*) malloc(fac*sizeof(int));
+    int *orderCostFP;
+    orderCostFP = (int*) malloc(fac*sizeof(int));
+
+    int *orderCostMEM;
+    orderCostMEM = (int*) malloc(fac*sizeof(int));
+
+    unsigned long timeMeasure;
+
+    //TODO Try to find a better value for those chars?
+    char *statString;
+    statString = malloc(10*n+512*sizeof(char));    
+
+    char *sizeString;
+    sizeString = malloc(10*n*sizeof(char));
+
+    int numCol;
 
     /**
      *
@@ -271,7 +287,9 @@ int main(int argc, char *argv[]) {
 
     printf("Creating statistics file...\n\n");
 
-    //createStatisticsFile(n);
+    numCol = createStatisticsFile(n);
+
+    createSizeString(sizeString,sizes,n);
 
     printf("Now creaiting all permutation possibilities...\n\n");
 
@@ -292,19 +310,11 @@ int main(int argc, char *argv[]) {
 
     normalizeSizes(sizes,copySizes,sizeMin,sizeMax,n);
 
-    computeChainCosts(allOrder,orderCost,copySizes,n,fac,'F');
+    computeChainCosts(allOrder,orderCostFP,copySizes,n,fac,'F');
+    
+    computeChainCosts(allOrder,orderCostMEM,copySizes,n,fac,'M');
 
     //sortChainCosts(allOrder,orderCost,n);
-
-    for(i=0;i<fac;i++) {
-        printf("[ ");
-        for(j=0;j<n-1;j++) {
-            printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
-        }
-        printf(" ]: %d cost\n",orderCost[i]);
-    }
-
-    printf("\n\n");
 
     resetCopySizes(sizes,copySizes,n);
 
@@ -318,13 +328,19 @@ int main(int argc, char *argv[]) {
 
         printf("Finally calculating the results...\n\n");
 
-	    calculateChain(copyA,interRes,allOrder[i],copySizes,n);
+	    timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes,n);
 
-        printf("Finished calculating the chain for minimal flops \n\n");
+        printf("Finished calculating the chain for minimal flops! \n\n");
         
         resetMatricesCopy(A,copyA,copySizes,n);
 
         resetCopySizes(sizes,copySizes,n);
+
+        printf("Quickly adding the statistics...\n\n");
+
+        createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],orderCostMEM[i],timeMeasure,n);
+       
+        addStatisticsToFile(statString,statString,numCol); 
 
     }
 
@@ -346,6 +362,10 @@ int main(int argc, char *argv[]) {
     //free(split);
     //free(allOrder);
     //free(orderCost);
+    free(orderCostFP);
+    free(orderCostMEM);
+    free(statString);
+    free(sizeString);
 
 	printf("Done! \n\n\n");
 
