@@ -44,13 +44,13 @@
  *
  */
 
-#define CPU 2200000
+#define CPU 2900000
 
 /* Value to define the size of level 3 of the CPU cache. Is needed for the cache scrub
  *
  */
 
-#define CACHESIZE 18432
+#define CACHESIZE 30000000
 
 /* Value how many matrices are used
  *
@@ -88,7 +88,7 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
 
         //cache scrub first
         
-        cache_scrub();
+        cache_scrub(CACHESIZE);
 
         //printf("Still working at the start of it %d\n\n", i);
 
@@ -104,11 +104,11 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
         /*printf("m is %d\n",m);
         printf("k is %d\n",k);
         printf("n is %d\n\n",n);*/
-
-        get_ticks(ticksB4);
-        
+               
         if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[i]) == NULL)
             printf("Error! One of the matrices is empty!");
+
+         get_ticks(ticksB4);
 
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
 
@@ -126,7 +126,7 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
             printf("Error allocating!\n\n");
         A[posY] = pointer;
         //printf("Realloced\n");
-        
+         
         memcpy(A[posY],interRes[i],m*n*sizeof(double));
         //printf("Repositioned\n");
         
@@ -365,20 +365,18 @@ int main(int argc, char *argv[]) {
 
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
 
-	for (i=0; i<N; i++) {
+	/*for (i=0; i<N; i++) {
     	mkl_free(A[i]);
         mkl_free(interRes[i]);
-        //free(cost[i]);
-        //free(split[i]);
-        //free(allOrder[i]);
     }
 
     mkl_free(A);
-    mkl_free(interRes);  
+    mkl_free(interRes); 
 
-    //free(cost);
-    //free(split);
-    //free(allOrder);
+    for(i=0;i<fac;i++)
+        free(allOrder[i]);
+
+    free(allOrder);*/
     free(orderCostFP);
     free(rankFP);
     free(orderCostMEM);

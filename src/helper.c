@@ -9,8 +9,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#define CACHESIZE 18432
-
 /* Helper function to get the factorial of a number n
  *
  * Return value:
@@ -98,12 +96,10 @@ int getCacheSize(int clevel) {
 
 } 
 
-void cache_scrub() {
-
-
-    int csize = CACHESIZE;
+void cache_scrub(int csize) {
 
     int n = (int) sqrt(csize);
+    n = n/8;
 
     double *A;
     A = malloc(n*n*sizeof(double));
@@ -119,8 +115,10 @@ void cache_scrub() {
         A[i] = (((double) rand() / (double) RAND_MAX));
         B[i] = (((double) rand() / (double) RAND_MAX));
         
-        C[i] = A[i] + B[i];
     }
+
+    for(i=0;i<n*n;i++)
+        C[i] = A[i]*B[i];
 
     //Print a value to prevent optimizing this part of the code
 

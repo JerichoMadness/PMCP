@@ -3,6 +3,6 @@
 
 int factorial (int n);
 int getCacheSize(int clevel); 
-void cache_scrub(); 
+void cache_scrub(int csize); 
 
 #endif
