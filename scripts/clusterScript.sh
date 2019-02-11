@@ -1,8 +1,8 @@
 #!/bin/zsh
 
 ### jobname
-###BSUB -J ChainJob[1-50]%1
-#BSUB -J job
+#BSUB -J ChainJob[1-50]%1
+###BSUB -J job
 
 ### output file
 #BSUB -o testOut.%J
@@ -26,5 +26,5 @@
 #BSUB -N
 
 cd $HOME/PMCP/
-time build/out.x
+taskset -c 1 build/out.x
 

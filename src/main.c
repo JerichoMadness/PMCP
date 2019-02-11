@@ -88,27 +88,24 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
 
         //cache scrub first
         
-        cache_scrub(CACHESIZE);
 
         //printf("Still working at the start of it %d\n\n", i);
 
         posX = order[2*i];
         posY = order[2*i+1];
 
-        printf("Using matrices %d and %d\n\n",posX,posY);
-
         m = sizes[posX];
         k = sizes[posX+1];
         n = sizes[posY+1];
         
-        /*printf("m is %d\n",m);
-        printf("k is %d\n",k);
-        printf("n is %d\n\n",n);*/
-               
         if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[i]) == NULL)
             printf("Error! One of the matrices is empty!");
 
-         get_ticks(ticksB4);
+        printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
+
+        cache_scrub(CACHESIZE);
+
+        get_ticks(ticksB4);
 
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
 
@@ -117,6 +114,8 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
         get_ticks(ticksAfter);
 
         //printf("Intermediate time result: %ld\n",(wtime_end - wtime_start));
+
+        printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (ticksAfter-ticksB4)/CPU);
 
         ticksSum = ticksSum + (ticksAfter - ticksB4);
 
@@ -285,7 +284,7 @@ int main(int argc, char *argv[]) {
 
 	printf("The matrix sizes are:\n");
 	for (i=0; i<N; i++) {
-		printf("size[%d]: [%dx%d]\n", i, sizes[i], sizes[i+1]);
+		printf("size[%d]: [%dx%d]\n", i, copySizes[i], copySizes[i+1]);
 	}
 
 
@@ -301,11 +300,13 @@ int main(int argc, char *argv[]) {
 
     numCol = createStatisticsFile(N);
 
-    createSizeString(sizeString,sizes,N);
+    createSizeString(sizeString,copySizes,N);
 
-    printf("Now creaiting all permutation possibilities...\n\n");
+    printf("Creating all permutation possibilities...\n\n");
 
     getAllOrders(allOrder,N-1);
+
+    printf("Converting all orders so they are readable...\n\n");
 
     convertOrders(allOrder,N);
 
@@ -334,7 +335,7 @@ int main(int argc, char *argv[]) {
 
     for(i=0;i<fac;i++) {
 
-        for(j=0;j<20;j++) {
+        for(j=0;j<3;j++) {
 
             printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
 
