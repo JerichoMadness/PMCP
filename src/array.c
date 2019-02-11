@@ -115,7 +115,8 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
     int i;
 
 	for (i=0; i<n+1; i++) {
-		sizes[i] = (rand() % (max-min)) + min;
+		sizes[i] = (rand() % max) + min;
+        //sizes[i] = 2500;        
         copySizes[i] = sizes[i];
 	}
 
@@ -137,7 +138,7 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
 
 void resetCopySizes(int *sizes, int *copySizes, int n) {
 
-    memcpy(copySizes,sizes,n*sizeof(int));
+    memcpy(copySizes,sizes,(n+1)*sizeof(int));
 
 }
 
@@ -159,14 +160,6 @@ void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n)
         normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/sizeMax;
 
 }     
-
-
-/* Function which is needed to free the cache of all data, due to the occasion of matrices still being in the cache while doing consecutive runs
- * A simple matrix addition is performed where each matrix is as large as the entire cache
- *
- * Arguments: -
- *
- */
 
 
 /* Function to save all possible chain order permutations

@@ -78,12 +78,12 @@ void createStatisticString(char *statString, char *sizeString, int *order, int c
 
     sprintf(tmp,"],");
     strcat(statString,tmp);
-
+ 
     //Append rest of the values
     sprintf(tmp,"%d,%d,%d,%d,%d",costFP,rankFP,costMEM,rankMEM,timeMeasure);
 
     strcat(statString,tmp);
-
+ 
     free(orderString);
     free(tmp);
 
