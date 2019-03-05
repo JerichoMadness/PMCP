@@ -28,6 +28,8 @@ void createSizeString (char *sizeString, int *sizes, int n) {
         strcat(sizeString,tmp);
     }
 
+    printf("Sizestring: %s\n\n",sizeString);
+
     free(tmp);
 }
 
@@ -69,6 +71,8 @@ void createStatisticString(char *statString, char *sizeString, int *order, int c
         sprintf(tmp,"(%dx%d)",order[2*i],order[2*i+1]);
         strcat(orderString,tmp);
     }
+
+    printf("Orderstring with %d iterations: %s\n\n",n,orderString);
 
     //Append multiplication order
     sprintf(tmp,",[");

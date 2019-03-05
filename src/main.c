@@ -67,7 +67,7 @@
  *
  */
 
-#define NRUNS 3
+#define NRUNS 1
 
 /* Function to calculate the matrix chain and measure the time needed
  *
@@ -123,11 +123,9 @@ double calculateChain(double **A, double **interRes, int *order, int *sizes)  {
 
         timeAfter = bli_clock();
 
-        //printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (ticksAfter-ticksB4)/CPU);
-
         timeSum = timeSum + (timeAfter - timeB4);
         
-        printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (timeAfter - time B4);
+        printf("Intermediate results: [%lf], %lfs\n\n", interRes[i][0], (timeAfter - timeB4));
 
         double* pointer;
         pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
@@ -268,7 +266,7 @@ int main(int argc, char *argv[]) {
     int *rankMEM;
     rankMEM = (int*) malloc(fac*sizeof(int));
 
-    double timeMeasure;
+    double timeMeasure = 0.;
 
     //TODO Try to find a better value for those chars?
     char *statString;
@@ -347,7 +345,7 @@ int main(int argc, char *argv[]) {
 
         for(j=0;j<NRUNS;j++) {
 
-            printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
+            printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
 
             setupInterMatrices(interRes,allOrder[i],copySizes,N);
 

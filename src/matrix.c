@@ -116,7 +116,9 @@ void getAllOrders(int **allOrder, int n) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
-    }*/
+    }
+
+    printf("\n\n");*/
 
     free(permChain);
 

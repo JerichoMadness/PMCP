@@ -115,8 +115,8 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
     int i;
 
 	for (i=0; i<n+1; i++) {
-		sizes[i] = (rand() % max) + min;
-        //sizes[i] = 2500;        
+		//sizes[i] = (rand() % max) + min;
+        sizes[i] = 1000;        
         copySizes[i] = sizes[i];
 	}
 
@@ -288,6 +288,8 @@ void getChainOrder(int **split, int *order, int n) {
  *
  * order - Array where multiplication order is saved
  * n = Number of matrices
+ *
+ * #############CURRENTLY OBSOLETE##############
  */
 
 void setConsecutiveOrder(int *order, int n) {
