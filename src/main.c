@@ -21,6 +21,7 @@
 #include "array.h"
 #include "helper.h"
 #include "error.h"
+#include "calculation.h"
 #include "bli_clock.h"
 
 /* Assembly function used for the timings.
@@ -67,87 +68,8 @@
  *
  */
 
-#define NRUNS 1
+#define NRUNS 3
 
-/* Function to calculate the matrix chain and measure the time needed
- *
- * Arguments:
- *
- * A = Matrix Array
- * interRes = Matrix Array for the intermediate results
- * order = Multiplication order
- * sizes = Matrix sizes
- * j = Number of matrices
- *
- */
-
-double calculateChain(double **A, double **interRes, int *order, int *sizes)  {
-
-    double timeB4, timeAfter, timeSum;
-    timeSum = 0.;
-
-    int i;
-
-    int posX,posY;
-
-    double alpha,beta;
-    alpha = 1.0;
-    beta = 0.0;
-    int m,n,k;
-
-    //Clean cache first to remove any prior data on it
-
-    cache_scrub(CACHESIZE);
-
-    for(i=0;i<N-1;i++) {
-
-        //printf("Still working at the start of it %d\n\n", i);
-
-        posX = order[2*i];
-        posY = order[2*i+1];
-
-        m = sizes[posX];
-        k = sizes[posX+1];
-        n = sizes[posY+1];
-        
-        if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[i]) == NULL)
-            printf("Error! One of the matrices is empty!");
-
-        printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
-
-        timeB4 = bli_clock();
-
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
-
-        //printf("Finished computing\n\n");
-
-        timeAfter = bli_clock();
-
-        timeSum = timeSum + (timeAfter - timeB4);
-        
-        printf("Intermediate results: [%lf], %lfs\n\n", interRes[i][0], (timeAfter - timeB4));
-
-        double* pointer;
-        pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
-        if (pointer == NULL)
-            printf("Error allocating!\n\n");
-        A[posY] = pointer;
-        //printf("Realloced\n");
-         
-        memcpy(A[posY],interRes[i],m*n*sizeof(double));
-        //printf("Repositioned\n");
-        
-        sizes[posY] = m;
-
-        //printf("Still working at the end of it %d\n\n", i);    
-
-    }
-
-    printf("Results: %lf\n\n",timeSum); 
-   
-    return timeSum;
-     
-}
 
 
 int main(int argc, char *argv[]) {
@@ -235,16 +157,6 @@ int main(int argc, char *argv[]) {
     } else {
         printf("Error. Use the maximum of two arguments!");
     }
-
-/*    double **cost;
-    cost = (double**) malloc(N*sizeof(double*));
-    for (i=0;i<N;i++)
-        cost[i] = (double*) malloc((N-i)*sizeof(double));    
-
-    int **split;
-    split = (int**) malloc(N*sizeof(int*));
-    for (i=0;i<N;i++)
-        split[i] = (int*) malloc((N-i)*sizeof(int));*/
 
     int fac;
     fac  = factorial(N-1);
@@ -353,7 +265,7 @@ int main(int argc, char *argv[]) {
 
             printf("Finally calculating the results...\n\n");
 
-            timeMeasure = calculateChain(copyA,interRes,allOrder[i],copySizes);
+            timeMeasure = calculateChainIterative(copyA,interRes,allOrder[i],copySizes,N);
 
             printf("Finished calculating the chain for minimal flops! \n\n");
             
