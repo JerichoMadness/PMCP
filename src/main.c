@@ -115,7 +115,6 @@ double calculateChain(double **A, double **interRes, int *order, int *sizes)  {
 
         printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
 
-
         timeB4 = bli_clock();
 
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
@@ -127,6 +126,8 @@ double calculateChain(double **A, double **interRes, int *order, int *sizes)  {
         //printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (ticksAfter-ticksB4)/CPU);
 
         timeSum = timeSum + (timeAfter - timeB4);
+        
+        printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (timeAfter - time B4);
 
         double* pointer;
         pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
