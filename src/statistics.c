@@ -47,7 +47,7 @@ void createSizeString (char *sizeString, int *sizes, int n) {
  *
  */
 
-void createStatisticString(char *statString, char *sizeString, int *order, int costFP, int rankFP, int costMEM, int rankMEM, unsigned long timeMeasure, int n) {
+void createStatisticString(char *statString, char *sizeString, int *order, int costFP, int rankFP, int costMEM, int rankMEM, double timeMeasure, int n) {
     
     int i;
 
@@ -80,7 +80,7 @@ void createStatisticString(char *statString, char *sizeString, int *order, int c
     strcat(statString,tmp);
  
     //Append rest of the values
-    sprintf(tmp,"%d,%d,%d,%d,%d",costFP,rankFP,costMEM,rankMEM,timeMeasure);
+    sprintf(tmp,"%d,%d,%d,%d,%lf",costFP,rankFP,costMEM,rankMEM,timeMeasure);
 
     strcat(statString,tmp);
  

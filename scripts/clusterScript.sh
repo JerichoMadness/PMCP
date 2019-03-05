@@ -8,7 +8,7 @@
 #BSUB -o testOut.%J
 
 ### time constraint
-#BSUB -W 0:20
+#BSUB -W 1:00
 
 ### memory constraint
 #BSUB -M 2000
@@ -17,10 +17,13 @@
 #BSUB -x
 
 ### Use only one node
-#BSUB n 1
+#BSUB -n 1
+
+### Use AICES cluster
+#BSUB -P aices2
 
 ### which processor
-###BSUB -R select"[model=<Broadwell_EP>]"
+#BSUB -R model==Haswell_EP
 
 ### send email when finished
 #BSUB -N

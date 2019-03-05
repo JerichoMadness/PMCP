@@ -21,6 +21,7 @@
 #include "array.h"
 #include "helper.h"
 #include "error.h"
+#include "bli_clock.h"
 
 /* Assembly function used for the timings.
  *
@@ -34,6 +35,8 @@
  *
  */
 
+//CURRENTLY OBSOLETE
+
 #define get_ticks(var) {                                           \
       unsigned int __a, __d;                                       \
       asm volatile("rdtsc" : "=a" (__a), "=d" (__d));              \
@@ -44,7 +47,9 @@
  *
  */
 
-#define CPU 2900000
+//CURRENTLY OBSOLETE
+
+#define CPU 3300000
 
 /* Value to define the size of level 3 of the CPU cache. Is needed for the cache scrub
  *
@@ -58,6 +63,12 @@
 
 #define N 4
 
+/* Value how many iterations a computation should walk through
+ *
+ */
+
+#define NRUNS 3
+
 /* Function to calculate the matrix chain and measure the time needed
  *
  * Arguments:
@@ -70,10 +81,10 @@
  *
  */
 
-unsigned long calculateChain(double **A, double **interRes, int *order, int *sizes)  {
+double calculateChain(double **A, double **interRes, int *order, int *sizes)  {
 
-    unsigned long ticksB4, ticksAfter, ticksSum;
-    ticksSum = 0;
+    double timeB4, timeAfter, timeSum;
+    timeSum = 0.;
 
     int i;
 
@@ -84,10 +95,11 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
     beta = 0.0;
     int m,n,k;
 
-    for(i=0;i<N-1;i++) {
+    //Clean cache first to remove any prior data on it
 
-        //cache scrub first
-        
+    cache_scrub(CACHESIZE);
+
+    for(i=0;i<N-1;i++) {
 
         //printf("Still working at the start of it %d\n\n", i);
 
@@ -103,21 +115,18 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
 
         printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
 
-        cache_scrub(CACHESIZE);
 
-        get_ticks(ticksB4);
+        timeB4 = bli_clock();
 
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[i], n);
 
         //printf("Finished computing\n\n");
 
-        get_ticks(ticksAfter);
+        timeAfter = bli_clock();
 
-        //printf("Intermediate time result: %ld\n",(wtime_end - wtime_start));
+        //printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (ticksAfter-ticksB4)/CPU);
 
-        printf("Intermediate results: [%lf], %lu\n\n", interRes[i][0], (ticksAfter-ticksB4)/CPU);
-
-        ticksSum = ticksSum + (ticksAfter - ticksB4);
+        timeSum = timeSum + (timeAfter - timeB4);
 
         double* pointer;
         pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
@@ -135,9 +144,9 @@ unsigned long calculateChain(double **A, double **interRes, int *order, int *siz
 
     }
 
-    printf("Results: %lu\n\n",ticksSum/CPU); 
+    printf("Results: %lf\n\n",timeSum); 
    
-    return(ticksSum/CPU);
+    return timeSum;
      
 }
 
@@ -258,7 +267,7 @@ int main(int argc, char *argv[]) {
     int *rankMEM;
     rankMEM = (int*) malloc(fac*sizeof(int));
 
-    unsigned long timeMeasure;
+    double timeMeasure;
 
     //TODO Try to find a better value for those chars?
     char *statString;
@@ -335,7 +344,7 @@ int main(int argc, char *argv[]) {
 
     for(i=0;i<fac;i++) {
 
-        for(j=0;j<3;j++) {
+        for(j=0;j<NRUNS;j++) {
 
             printf("Setting up the matrices for the intermediate results in iteration %d...\n\n",i);
 
