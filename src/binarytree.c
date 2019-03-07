@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct node {
   int mLeft;
@@ -8,7 +9,7 @@ struct node {
   struct node *cRight;
 };
 
-
+ 
 /* Function to destory a tree
  *
  * Arguments:
@@ -58,6 +59,21 @@ void insert(int left, int right, struct node **leaf)
     }
 
 }
+
+
+struct node* createTree(int *order, int n) {
+
+    struct node *root = 0;
+    int i;
+
+    for(i=0;i<n-1;i++) {
+        insert(order[2*i],order[2*i+1],&root);
+    }
+
+    return root;
+
+}
+
 
 /* Function to get the Depth of a tree
  *
@@ -125,19 +141,7 @@ int checkEquivalence(struct node* nodeA, struct node* nodeB) {
     return 0;
 
 }
- 
-struct node* createTree(int *order, struct node* node, int n) {
 
-    struct node *root = 0;
-    int i;
-
-    for(i=0;i<n-1;i++) {
-        insert(order[2*i],order[2*i+1],&root);
-    }
-
-    return root;
-
-}
 
 
 int traverseTree(int *order, int *dependency, struct node* node, int pos) {
@@ -169,4 +173,44 @@ int traverseTree(int *order, int *dependency, struct node* node, int pos) {
 
     return pos;
 
+}
+
+void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n) {
+
+    int i;
+
+    for(i=pos;i<length-1;i++) {
+        memcpy(allOrder[i],allOrder[i+1],2*(n-1)*sizeof(int));
+        memcpy(allTree[i],allTree[i+1],sizeof(struct node));
+    }
+
+    free(allOrder[length]);
+    free(allTree[length]);
+
+}
+
+int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
+
+    int removed = 0;
+    int equiv = 0;
+    int i,j;
+
+    for(i=0;i<length;i++) {
+        if(i+removed >= length)
+            break;
+        
+        for(j=i+1;j<length;j++) {
+            if(j+removed >= length)
+                break;
+            equiv = checkEquivalence(allTree[i], allTree[j]);
+            if (equiv != 0) {
+                removeTree(allOrder, allTree, j, length-removed, n);
+                removed = removed+1;
+            }
+        }
+
+    }
+
+    return removed;
+        
 }

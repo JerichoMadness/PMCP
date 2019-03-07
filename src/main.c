@@ -22,6 +22,7 @@
 #include "helper.h"
 #include "error.h"
 #include "calculation.h"
+#include "binarytree.h"
 #include "bli_clock.h"
 
 /* Assembly function used for the timings.
@@ -189,6 +190,15 @@ int main(int argc, char *argv[]) {
 
     int numCol;
 
+    struct node **allTree;
+    allTree = (struct node**) malloc(fac*sizeof(struct node*));
+    
+    
+    int **dependency;
+    dependency = (int**) malloc(fac*sizeof(int));
+    for(i=0;i<fac;i++)
+        dependency[i] = (int*) malloc(2*(N-1)*sizeof(int));
+
     /**
      *
      * END OF VARIABLES */ 
@@ -229,6 +239,9 @@ int main(int argc, char *argv[]) {
     printf("Converting all orders so they are readable...\n\n");
 
     convertOrders(allOrder,N);
+
+    for(i=0;i<N;i++)
+        allTree[i] = createTree(allOrder[i], N);         
 
 	printf("Now the evaluation results... \n\n");
 
