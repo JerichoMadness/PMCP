@@ -4,7 +4,7 @@
 #include <time.h>
 #include <float.h>
 #include <string.h>
-
+#include <math.h>
 
 /* Helper function to check if a current number is included in an array
  *
@@ -303,3 +303,27 @@ void setConsecutiveOrder(int *order, int n) {
 
 }
 
+/* Function to get a multiplication order for omp task parallelism via binary tree
+ *
+ * Arguments:
+ *
+ * n = Number of matrices
+ *
+ * Return arguments:
+ *
+ * *order = Multiplication order
+ *
+ *
+
+*int getbinaryTreeOrder(int n) {
+
+    int tmp = n;
+    int level = 0;
+    
+    while(n >> 1) ++level;
+
+    int *binTreeOrder = malloc(
+
+    return *order;
+
+}*/
