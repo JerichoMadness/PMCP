@@ -8,12 +8,14 @@ struct node {
   struct node *cRight;
 };
 
-struct node* createTree(int *order, int n); 
-void destroy_tree(struct node *leaf);
-void insert(int left, int right, struct node **leaf);
-int maxDepth(struct node* node); 
+void printTree(struct node *nd); 
+struct node* newNode(int left, int right);
+void destroyTree(struct node *nd);
+struct node* insert(struct node *nd, int left, int right);
+struct node* createTree(struct node *root, int *order, int n);
+int maxDepth(struct node* nd); 
 int checkEquivalance(struct node* nodeA, struct node* nodeB); 
-int traverseTree(int *order, int *dependency, struct node* node, int pos);
+int traverseTree(int *order, int *dependency, struct node* nd, int pos);
 void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n);
 int removeDuplicates(int **allOrder, struct node **allTree, int length, int n); 
 #endif

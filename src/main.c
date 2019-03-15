@@ -69,7 +69,7 @@
  *
  */
 
-#define NRUNS 3
+#define NRUNS 1
 
 
 
@@ -162,22 +162,25 @@ int main(int argc, char *argv[]) {
     int fac;
     fac  = factorial(N-1);
 
+    int removed = 0;
+    int numOrder = fac;
+
     int **allOrder;
     allOrder = (int**) malloc(N*sizeof(int*));
-    for(i=0;i<fac;i++)
+    for(i=0;i<numOrder;i++)
         allOrder[i] = (int*) malloc((2*(N-1))*sizeof(int));
 
     int *orderCostFP;
-    orderCostFP = (int*) malloc(fac*sizeof(int));
+    orderCostFP = (int*) malloc(numOrder*sizeof(int));
 
     int *rankFP;
-    rankFP = (int*) malloc(fac*sizeof(int));
+    rankFP = (int*) malloc(numOrder*sizeof(int));
 
     int *orderCostMEM;
-    orderCostMEM = (int*) malloc(fac*sizeof(int));
+    orderCostMEM = (int*) malloc(numOrder*sizeof(int));
 
     int *rankMEM;
-    rankMEM = (int*) malloc(fac*sizeof(int));
+    rankMEM = (int*) malloc(numOrder*sizeof(int));
 
     double timeMeasure = 0.;
 
@@ -191,12 +194,13 @@ int main(int argc, char *argv[]) {
     int numCol;
 
     struct node **allTree;
-    allTree = (struct node**) malloc(fac*sizeof(struct node*));
-    
-    
+    allTree = (struct node**) malloc(numOrder*sizeof(struct node*));
+    for(i=0;i<numOrder;i++)
+        allTree[i] = NULL;
+ 
     int **dependency;
-    dependency = (int**) malloc(fac*sizeof(int));
-    for(i=0;i<fac;i++)
+    dependency = (int**) malloc(numOrder*sizeof(int));
+    for(i=0;i<numOrder;i++)
         dependency[i] = (int*) malloc(2*(N-1)*sizeof(int));
 
     /**
@@ -240,8 +244,22 @@ int main(int argc, char *argv[]) {
 
     convertOrders(allOrder,N);
 
-    for(i=0;i<N;i++)
-        allTree[i] = createTree(allOrder[i], N);         
+    for(i=0;i<numOrder;i++) {
+        allTree[i] = createTree(allTree[i],allOrder[i], N);  
+        if(allTree[i] == NULL)
+            printf("Tree %d is null!\n\n",i);         
+        printTree(allTree[i]);
+        printf("\n\n");
+        printf("Created tree %d!\n\n",i);
+    }
+
+    printf("Done with creating trees!\n\n");
+
+    //removed = removeDuplicates(allOrder, allTree, numOrder, N);    
+
+    printf("Removed duplicates!\n\n");
+
+    numOrder = fac-removed;
 
 	printf("Now the evaluation results... \n\n");
 
@@ -256,17 +274,17 @@ int main(int argc, char *argv[]) {
 
     normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
 
-    computeChainCosts(allOrder,orderCostFP,copySizes,N,fac,'F');
+    computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
 
-    rankElements(orderCostFP,rankFP,fac);
+    rankElements(orderCostFP,rankFP,numOrder);
     
-    computeChainCosts(allOrder,orderCostMEM,copySizes,N,fac,'M');
+    computeChainCosts(allOrder,orderCostMEM,copySizes,N,numOrder,'M');
 
-    rankElements(orderCostMEM,rankMEM,fac);
+    rankElements(orderCostMEM,rankMEM,numOrder);
 
     resetCopySizes(sizes,copySizes,N);
 
-    for(i=0;i<fac;i++) {
+    for(i=0;i<numOrder;i++) {
 
         for(j=0;j<NRUNS;j++) {
 
@@ -310,7 +328,9 @@ int main(int argc, char *argv[]) {
     for(i=0;i<fac;i++)
         free(allOrder[i]);
 
-    free(allOrder);*/
+    free(allOrder);
+    free(dependency);
+    free(allTree);*/
     free(orderCostFP);
     free(rankFP);
     free(orderCostMEM);
