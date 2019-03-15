@@ -142,27 +142,16 @@ int checkEquivalence(struct node* nodeA, struct node* nodeB) {
 
     //If both nodes are empty, they are equivalent
     if ((nodeA == NULL) && (nodeB == NULL))
-        return 0;
+        return 1;
    
-    printf("Am I at one\n\n");
- 
     //If only one node exists, they are not equivalent
     if ((nodeA == NULL) || (nodeB == NULL))
-        return 1;
-
-    printf("%d\n\n",nodeA->mLeft);
-
-    printf("Am I at two\n\n");
+        return 0;
 
     //If the matrices aren't the same, they are not equivalent
 
-    //printf("Here: %d,%d,%d,%d\n\n", nodeA->mLeft,nodeB->mLeft,nodeA->mRight,nodeB->mRight);
-
-
     if(((nodeA->mLeft) != (nodeB->mLeft)) || ((nodeA->mRight) != (nodeB->mRight)))
-        return 1;   
-
-    printf("Am I at three\n\n");
+        return 0;   
 
     int depthA = maxDepth(nodeA);
     int depthB = maxDepth(nodeB);
@@ -172,19 +161,16 @@ int checkEquivalence(struct node* nodeA, struct node* nodeB) {
     //If both have same depth, they can be equivalent
     if(depthA == depthB) {
 
-        int equal = 0;        
+        int equal;
 
-        //Check both children. Return value as fast as possible
-        equal = equal + checkEquivalence(nodeA->cLeft,nodeB->cRight);
-        if(equal !=0 ) return 1;
-
-        equal = equal + checkEquivalence(nodeA->cRight,nodeB->cRight);
-        if(equal != 0) return 1;
-
-    //If they don't have the same depth, they are not equivalent
-    } else return 1;
-
-    return 0;
+        //Only check right subtree if left subtree is equivalent
+        equal = checkEquivalence(nodeA->cLeft,nodeB->cLeft);
+        if(equal == 1 ) 
+            return checkEquivalence(nodeA->cRight,nodeB->cRight);
+        else 
+            return 0;
+        
+    } else return 0;
 
 }
 
@@ -225,12 +211,15 @@ void removeTree(int **allOrder, struct node **allTree, int pos, int length, int 
 
     int i;
 
+    printf("Starting to remove tree %d\n\n",pos);
+
     for(i=pos;i<length-1;i++) {
+        printf("Start it %d\n\n",i);
         memcpy(allOrder[i],allOrder[i+1],2*(n-1)*sizeof(int));
         memcpy(allTree[i],allTree[i+1],sizeof(struct node));
     }
 
-    free(allOrder[length]);
+    printf("Finished deleting tree!\n\n");
     destroyTree(allTree[length]);
 
 }
@@ -253,7 +242,7 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
             printf("Checking equivalence for trees %d, %d\n\n",i,j);
             equiv = checkEquivalence(allTree[i], allTree[j]);
             printf("Equivalence is %d\n\n",equiv);
-            if (equiv != 0) {
+            if (equiv == 1) {
                 removeTree(allOrder, allTree, j, length-removed, n);
                 removed = removed+1;
             }

@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 
     printf("Done with creating trees!\n\n");
 
-    //removed = removeDuplicates(allOrder, allTree, numOrder, N);    
+    removed = removeDuplicates(allOrder, allTree, numOrder, N);    
 
     printf("Removed duplicates!\n\n");
 
