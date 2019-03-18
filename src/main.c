@@ -304,8 +304,7 @@ int main(int argc, char *argv[]) {
 
             printf("Finally calculating the results...\n\n");
 
-            //timeMeasure = calculateChainIterative(copyA,interRes,allOrder[i],copySizes,N);
-            timeMeasure = calculateChainIterativeNEW(copyA,interRes,copySizes,allTree[i],N);
+            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i],N);
 
             printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
             
