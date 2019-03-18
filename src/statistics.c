@@ -72,7 +72,7 @@ void createStatisticString(char *statString, char *sizeString, int *order, int c
         strcat(orderString,tmp);
     }
 
-    printf("Orderstring with %d iterations: %s\n\n",n,orderString);
+    printf("Orderstring: %s\n\n",orderString);
 
     //Append multiplication order
     sprintf(tmp,",[");
