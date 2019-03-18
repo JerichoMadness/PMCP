@@ -3,10 +3,11 @@
 #include <string.h>
 
 struct node {
-  int mLeft;
-  int mRight;
-  struct node *cLeft;
-  struct node *cRight;
+    int mLeft;
+    int mRight;
+    int opNum;
+    struct node *cLeft;
+    struct node *cRight;
 };
 
 
@@ -42,11 +43,12 @@ void destroyTree(struct node *leaf)
   }
 }
 
-struct node* newNode(int left, int right) {
+struct node* newNode(int left, int right, int num) {
     
     struct node *nd = malloc(1*sizeof(struct node));    // "new" is like "malloc"
     nd->mLeft = left;
     nd->mRight = right;
+    nd->opNum = num;
     nd->cLeft = NULL;
     nd->cRight = NULL;
 
@@ -64,10 +66,10 @@ struct node* newNode(int left, int right) {
  * leaf = Current node
  */
 
-struct node* insert(struct node *nd, int left, int right) {
+struct node* insert(struct node *nd, int left, int right, int num) {
 
     if( nd == NULL ) {
-        return newNode(left,right);
+        return newNode(left,right,num);
     }
     /* If left matrix is already contained in the current node, go to left child
      * If right matrix is already contained in the current node, go to right child
@@ -76,15 +78,15 @@ struct node* insert(struct node *nd, int left, int right) {
      * The inserted chain can be a subchain between left or right and would be inserted in the right node
      */
     else if((right == nd->mRight) && (nd->mLeft < left < nd->mRight)) {
-        nd->cRight = insert( nd->cRight, left, right );
+        nd->cRight = insert( nd->cRight, left, right, num );
     } else if((right == nd->mLeft) && (left < nd->mLeft))  {
-        nd->cLeft = insert( nd->cLeft, left, right );
+        nd->cLeft = insert( nd->cLeft, left, right, num );
     } else if(left > nd->mRight) {
-        nd->cRight = insert(nd->cRight,left,right);
+        nd->cRight = insert(nd->cRight,left,right,num);
     } else if(right < nd->mLeft) {
-        nd->cLeft = insert(nd->cLeft,left,right);
+        nd->cLeft = insert(nd->cLeft,left,right,num);
     } else if(nd->mLeft < left < right < nd->mRight) {
-        nd->cRight = insert(nd->cRight,left,right);
+        nd->cRight = insert(nd->cRight,left,right,num);
     } else {
         printf("Mistake! Node can't be inserted for values (%d,%d) with current node (%d,%d)\n\n",left,right,nd->mLeft,nd->mRight);
     }
@@ -97,15 +99,15 @@ struct node* createTree(struct node *root, int *order, int n) {
 
     int i;
 
-    printf("Start creating tree!\n\n");
+    //printf("Start creating tree!\n\n");
 
     //Start at n-2 due to 1) Ops start at 0, 2) N-1 Operations
     for(i=n-2;i>=0;i--) {
-        printf("Inserted operation number %d (%d,%d)\n\n",i,order[2*i],order[(2*i)+1]);
-        root = insert(root,order[2*i],order[(2*i)+1]);
+        //printf("Inserted operation number %d (%d,%d)\n\n",i,order[2*i],order[(2*i)+1]);
+        root = insert(root,order[2*i],order[(2*i)+1],i);
     }
 
-    printf("Finished creating tree!\n\n");
+    //printf("Finished creating tree!\n\n");
 
     return root;
 
@@ -156,7 +158,7 @@ int checkEquivalence(struct node* nodeA, struct node* nodeB) {
     int depthA = maxDepth(nodeA);
     int depthB = maxDepth(nodeB);
 
-    printf("Depth: %d and %d\n\n",depthA,depthB);
+    //printf("Depth: %d and %d\n\n",depthA,depthB);
 
     //If both have same depth, they can be equivalent
     if(depthA == depthB) {
@@ -174,52 +176,17 @@ int checkEquivalence(struct node* nodeA, struct node* nodeB) {
 
 }
 
-
-
-int traverseTree(int *order, int *dependency, struct node* nd, int pos) {
-
-    order[2*pos] = nd->mLeft;
-    order[(2*pos)+1] = nd->mRight;
-
-    pos = pos+1;
-
-    //If node has left child operation, it depends on it
-    if((nd->cLeft) != NULL)
-        dependency[2*pos] = (nd->cLeft)->mLeft;
-    else
-        dependency[2*pos] = -1;
-
-    //If node has right child operation, it depends on it
-    if((nd->cRight) != NULL)
-        dependency[(2*pos)+1] = (nd->cRight)->mRight;
-    else
-        dependency[(2*pos)+1] = -1;
-
-    //Traverse Children
-    if((nd->cLeft = 0) && (nd->cLeft = 0))
-        return pos;
-    else if(nd->cLeft = NULL)
-        pos = traverseTree(order,dependency, nd->cRight, pos);
-    else if(nd->cRight = NULL)
-        pos = traverseTree(order, dependency, nd->cLeft, pos);
-
-    return pos;
-
-}
-
 void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n) {
 
     int i;
 
-    printf("Starting to remove tree %d\n\n",pos);
-
     for(i=pos;i<length-1;i++) {
-        printf("Start it %d\n\n",i);
+        //printf("Start at %d\n\n",i);
         memcpy(allOrder[i],allOrder[i+1],2*(n-1)*sizeof(int));
         memcpy(allTree[i],allTree[i+1],sizeof(struct node));
     }
 
-    printf("Finished deleting tree!\n\n");
+    //printf("Finished deleting tree!\n\n");
     destroyTree(allTree[length]);
 
 }
@@ -232,26 +199,54 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
 
     for(i=0;i<length;i++) {
         if(i+removed >= length) {
-            printf("I'm breaking since i+removed is %d\n\n",i+removed);
+            //printf("I'm breaking in iteration %d since %d tree(s) has/have already been removed\n\n",i,removed);
             break;
         }
 
         for(j=i+1;j<length;j++) {
             if(j+removed >= length)
                 break;
-            printf("Checking equivalence for trees %d, %d\n\n",i,j);
+            //printf("Checking equivalence for trees %d, %d\n\n",i,j);
             equiv = checkEquivalence(allTree[i], allTree[j]);
-            printf("Equivalence is %d\n\n",equiv);
+            //printf("Equivalence is %d\n\n",equiv);
             if (equiv == 1) {
                 removeTree(allOrder, allTree, j, length-removed, n);
                 removed = removed+1;
             }
         }
         
-        printf("Finished iteration %d\n\n");
-
     }
 
     return removed;
         
+}
+
+int* extractDependencies(int *dependency, struct node* nd) {
+
+    //If node has left child, it depends on it
+    if((nd->cLeft) != NULL) {
+        dependency[2*(nd->opNum)] = (nd->cLeft)->opNum;
+    } else {
+        dependency[2*(nd->opNum)] = -1;
+    }
+
+    //If node has right child, it depends on it
+    if((nd->cRight) != NULL)
+        dependency[(2*(nd->opNum))+1] = (nd->cRight)->opNum;
+    else
+        dependency[(2*(nd->opNum))+1] = -1;
+
+    //printf("Inserted dependency[%d] = %d\n\n",(2*(nd->opNum))+1, dependency[(2*(nd->opNum))+1]);
+    //printf("Inserted dependency[%d] = %d\n\n",2*(nd->opNum), dependency[2*(nd->opNum)]);
+
+    //Traverse Children
+    if((nd->cLeft == NULL) && (nd->cLeft = NULL))
+        return dependency;
+    if(nd->cLeft != NULL)
+        dependency = extractDependencies(dependency, nd->cLeft);
+    if(nd->cRight != NULL)
+        dependency = extractDependencies(dependency, nd->cRight);
+
+    return dependency;
+
 }

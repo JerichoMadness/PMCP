@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
         allTree[i] = NULL;
  
     int **dependency;
-    dependency = (int**) malloc(numOrder*sizeof(int));
+    dependency = (int**) malloc(numOrder*sizeof(int*));
     for(i=0;i<numOrder;i++)
         dependency[i] = (int*) malloc(2*(N-1)*sizeof(int));
 
@@ -244,22 +244,30 @@ int main(int argc, char *argv[]) {
 
     convertOrders(allOrder,N);
 
+    printf("Creating traversable trees...\n\n");
+
     for(i=0;i<numOrder;i++) {
         allTree[i] = createTree(allTree[i],allOrder[i], N);  
-        if(allTree[i] == NULL)
-            printf("Tree %d is null!\n\n",i);         
-        printTree(allTree[i]);
-        printf("\n\n");
-        printf("Created tree %d!\n\n",i);
+        //printf("Created tree %d!\n\n",i);
     }
 
-    printf("Done with creating trees!\n\n");
+    printf("Removing duplicate trees and multiplication orders...\n\n");
 
     removed = removeDuplicates(allOrder, allTree, numOrder, N);    
 
-    printf("Removed duplicates!\n\n");
+    printf("Removed %d duplicate(s)!\n\n",removed);
 
     numOrder = fac-removed;
+
+    printf("Extracting the dependencies of each tree...\n\n");
+
+    for(i=0;i<numOrder;i++) {
+        dependency[i] = extractDependencies(dependency[i], allTree[i]);    
+        /*for(j=0;j<N-1;j++) {
+            printf("%d depends on (%d,%d)\n",j,dependency[i][2*j],dependency[i][2*j+1]);
+        }
+        printf("\n\n");*/
+    }
 
 	printf("Now the evaluation results... \n\n");
 
