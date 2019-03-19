@@ -11,6 +11,8 @@
 #include <bli_clock.h>
 #include <omp.h>
 #include "binarytree.h"
+
+
 #define CACHESIZE 30000000
 
 /* Function to calculate the matrix chain and measure the time needed
@@ -99,6 +101,8 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
     int opPos = nd->opNum;
 
+    printf("I am opPos: %d\n\n",opPos);
+
     posX = nd->mLeft;
     posY = nd->mRight;
 
@@ -131,14 +135,23 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
 void processTree(double **A, double **interRes, int *sizes, struct node *nd, int N) {
 
+
     if(nd->cLeft != NULL) {
-        #pragma omp task shared(A, interRes, sizes, N), private(nd)
-        processTree(A,interRes,sizes,nd,N);   
+        #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd) 
+        {
+        int id = omp_get_thread_num();
+        printf("I am thread %d in left child! \n\n",id);
+        processTree(A,interRes,sizes,nd->cLeft,N);   
+        }
     }
 
     if(nd->cRight != NULL) {
-        #pragma omp task shared(A, interRes, sizes, N), private(nd)
-        processTree(A,interRes,sizes,nd,N);
+        #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd)
+        {
+        int id = omp_get_thread_num();
+        printf("I am thread %d in right child!\n\n",id);
+        processTree(A,interRes,sizes,nd->cRight,N);
+        }
     }
 
     #pragma omp taskwait
@@ -158,9 +171,15 @@ double calculateChainParallel(double **A, double **interRes, int *sizes, struct 
 
     cache_scrub(CACHESIZE);
 
+    omp_set_num_threads(4);
+
     timeB4 = bli_clock();
 
+    #pragma omp parallel
+    #pragma omp single
+    //funProcess(root);
     processTree(A, interRes, sizes, root, N);
+    #pragma omp taskwait
 
     timeAfter = bli_clock();
 
