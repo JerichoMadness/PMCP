@@ -63,7 +63,7 @@
  *
  */
 
-#define N 4
+#define N 5
 
 /* Value how many iterations a computation should walk through
  *
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
     int numOrder = fac;
 
     int **allOrder;
-    allOrder = (int**) malloc(N*sizeof(int*));
+    allOrder = (int**) malloc(numOrder*sizeof(int*));
     for(i=0;i<numOrder;i++)
         allOrder[i] = (int*) malloc((2*(N-1))*sizeof(int));
 
@@ -304,8 +304,8 @@ int main(int argc, char *argv[]) {
 
             printf("Finally calculating the results...\n\n");
 
-            //timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i],N);
-            timeMeasure = calculateChainParallel(copyA,interRes,copySizes,allTree[i],N);
+            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i],N);
+            //timeMeasure = calculateChainParallel(copyA,interRes,copySizes,allTree[i],N);
 
             printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
             

@@ -101,7 +101,7 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
     int opPos = nd->opNum;
 
-    printf("I am opPos: %d\n\n",opPos);
+    //printf("I am opPos: %d\n\n",opPos);
 
     posX = nd->mLeft;
     posY = nd->mRight;
@@ -140,7 +140,7 @@ void processTree(double **A, double **interRes, int *sizes, struct node *nd, int
         #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd) 
         {
         int id = omp_get_thread_num();
-        printf("I am thread %d in left child! \n\n",id);
+        //printf("I am thread %d in left child! \n\n",id);
         processTree(A,interRes,sizes,nd->cLeft,N);   
         }
     }
@@ -149,7 +149,7 @@ void processTree(double **A, double **interRes, int *sizes, struct node *nd, int
         #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd)
         {
         int id = omp_get_thread_num();
-        printf("I am thread %d in right child!\n\n",id);
+        //printf("I am thread %d in right child!\n\n",id);
         processTree(A,interRes,sizes,nd->cRight,N);
         }
     }

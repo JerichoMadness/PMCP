@@ -193,22 +193,23 @@ void permute(int **allOrder, int *permChain, int n) {
         
         if(tmp[i] < i) {
    
-            if((i%2) == 0)
-                swap(permChain+0,permChain+i);
-            else
-                swap(permChain+tmp[i],permChain+i);
-            
+            if((i%2) == 0) {
+                //printf("Swapping %d and %d\n\n",permChain[0],permChain[i]); 
+                swap(&permChain[0],&permChain[i]);
+            } else {
+                //printf("Swapping %d and %d\n\n",permChain[tmp[i]],permChain[i]); 
+                swap(&permChain[tmp[i]],&permChain[i]);
+            }
+    
             for(j=0;j<n;j++) {
                 allOrder[pos][2*j] = permChain[j];
                 allOrder[pos][(2*j)+1] = permChain[j]+1;
             }
-
-            
+    
             tmp[i] = tmp[i]+1;
             pos = pos+1;
             i=0;
-    
-            
+     
             
         } else {
             tmp[i] = 0;

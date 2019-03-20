@@ -103,10 +103,11 @@ void getAllOrders(int **allOrder, int n) {
     fac = factorial(n);
 
     int *permChain;
-    permChain = (int*) malloc((n)*sizeof(int));
+    permChain = (int*) malloc(n*sizeof(int));
 
-    for(i=0;i<n;i++)
+    for(i=0;i<n;i++) {
         permChain[i] = i;
+    }
 
     permute(allOrder,permChain,n);
 
