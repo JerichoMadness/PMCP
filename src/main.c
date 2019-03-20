@@ -25,26 +25,6 @@
 #include "binarytree.h"
 #include "bli_clock.h"
 
-/* Assembly function used for the timings.
- *
- * Get the number of clock ticks and later divide it by the CPU frequence
- *
- * Arguments: -
- *
- * Return argument:
- *
- * Ticks (unsigned long)
- *
- */
-
-//CURRENTLY OBSOLETE
-
-#define get_ticks(var) {                                           \
-      unsigned int __a, __d;                                       \
-      asm volatile("rdtsc" : "=a" (__a), "=d" (__d));              \
-      var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
-   } while(0)
-
 /* Value to define the CPU frequenz. Can also be defined in the makefile. Always take the frequence divided my 1000 for milliseconds
  *
  */
@@ -70,7 +50,6 @@
  */
 
 #define NRUNS 1
-
 
 
 int main(int argc, char *argv[]) {
@@ -198,11 +177,6 @@ int main(int argc, char *argv[]) {
     for(i=0;i<numOrder;i++)
         allTree[i] = NULL;
  
-    int **dependency;
-    dependency = (int**) malloc(numOrder*sizeof(int*));
-    for(i=0;i<numOrder;i++)
-        dependency[i] = (int*) malloc(2*(N-1)*sizeof(int));
-
     /**
      *
      * END OF VARIABLES */ 
@@ -259,18 +233,7 @@ int main(int argc, char *argv[]) {
 
     numOrder = fac-removed;
 
-    printf("Extracting the dependencies of each tree...\n\n");
-
-    for(i=0;i<numOrder;i++) {
-        dependency[i] = extractDependencies(dependency[i], allTree[i]);    
-        /*for(j=0;j<N-1;j++) {
-            printf("%d depends on (%d,%d)\n",j,dependency[i][2*j],dependency[i][2*j+1]);
-        }
-        printf("\n\n");*/
-    }
-
 	printf("Now the evaluation results... \n\n");
-
 
 	//Now time to evaluate results with the different cost functions. 
 	//After each cost function rewrite copyA to continue with next matrix
@@ -338,7 +301,6 @@ int main(int argc, char *argv[]) {
         free(allOrder[i]);
 
     free(allOrder);
-    free(dependency);
     free(allTree);*/
     free(orderCostFP);
     free(rankFP);

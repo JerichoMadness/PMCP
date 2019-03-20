@@ -18,5 +18,5 @@ int maxDepth(struct node *nd);
 int checkEquivalance(struct node *nodeA, struct node *nodeB); 
 void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n);
 int removeDuplicates(int **allOrder, struct node **allTree, int length, int n); 
-int* extractDependencies(int *dependency, struct node *nd);
+
 #endif

@@ -51,6 +51,63 @@ void swap(int *x, int *y) {
 
 }
 
+/* Function to save all possible chain order permutations
+ *
+ * Parameters:
+ *
+ * allOrder = Matrix where all permutated orders are saved in
+ * permChain = Integer array that is permutated
+ * int n = number of elements in permChain (= number of multplications needed to compute the chain
+ *
+ */
+
+void permute(int **allOrder, int *permChain, int n) { 
+
+    int tmp[n];
+
+    int i,j,fac,pos;
+    fac = factorial(n);
+    pos = 0;
+
+    for(i=0;i<n;i++) {
+        tmp[i] = 0;
+        allOrder[pos][2*i] = permChain[i];
+        allOrder[pos][(2*i)+1] = permChain[i]+1;
+    }
+
+    pos = pos+1;
+    i=0;
+
+    while(i<n) {
+        
+        if(tmp[i] < i) {
+   
+            if((i%2) == 0) {
+                //printf("Swapping %d and %d\n\n",permChain[0],permChain[i]); 
+                swap(&permChain[0],&permChain[i]);
+            } else {
+                //printf("Swapping %d and %d\n\n",permChain[tmp[i]],permChain[i]); 
+                swap(&permChain[tmp[i]],&permChain[i]);
+            }
+    
+            for(j=0;j<n;j++) {
+                allOrder[pos][2*j] = permChain[j];
+                allOrder[pos][(2*j)+1] = permChain[j]+1;
+            }
+    
+            tmp[i] = tmp[i]+1;
+            pos = pos+1;
+            i=0;
+     
+            
+        } else {
+            tmp[i] = 0;
+            i = i+1;
+        }
+    }
+
+}
+
 /* Function to sort the ranks of the costs of each cost function via bubblesort
  *
  * Arguments:
@@ -95,7 +152,6 @@ void rankElements(int *cost, int *rank, int n) {
     free(tmp);
 
 } 
-
 
 
 /* Function to set randomized matrix sizes between min and max
@@ -162,169 +218,5 @@ void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n)
 }     
 
 
-/* Function to save all possible chain order permutations
- *
- * Parameters:
- *
- * allOrder = Matrix where all permutated orders are saved in
- * permChain = Integer array that is permutated
- * int n = number of elements in permChain (= number of multplications needed to compute the chain
- *
- */
-
-void permute(int **allOrder, int *permChain, int n) { 
-
-    int tmp[n];
-
-    int i,j,fac,pos;
-    fac = factorial(n);
-    pos = 0;
-
-    for(i=0;i<n;i++) {
-        tmp[i] = 0;
-        allOrder[pos][2*i] = permChain[i];
-        allOrder[pos][(2*i)+1] = permChain[i]+1;
-    }
-
-    pos = pos+1;
-    i=0;
-
-    while(i<n) {
-        
-        if(tmp[i] < i) {
-   
-            if((i%2) == 0) {
-                //printf("Swapping %d and %d\n\n",permChain[0],permChain[i]); 
-                swap(&permChain[0],&permChain[i]);
-            } else {
-                //printf("Swapping %d and %d\n\n",permChain[tmp[i]],permChain[i]); 
-                swap(&permChain[tmp[i]],&permChain[i]);
-            }
-    
-            for(j=0;j<n;j++) {
-                allOrder[pos][2*j] = permChain[j];
-                allOrder[pos][(2*j)+1] = permChain[j]+1;
-            }
-    
-            tmp[i] = tmp[i]+1;
-            pos = pos+1;
-            i=0;
-     
-            
-        } else {
-            tmp[i] = 0;
-            i = i+1;
-        }
-    }
-
-}
 
 
-/* Recursive part of printing chain. Chain [i,j] is then referenced as chain part [j]
- *
- * Arguments:
- *
- * split = Result matrix from DP which gives a split position for each chain
- * order = Array where the multiplication order is saved
- * left/right = Left/right matrix of the given chain
- * pos = Current position of the next empty entry of order. Therefore, pos should be 2*(n-1) in the end
- *
- */
-
-int getRecursiveChain(int **split, int *order,  int left, int right, int pos) {
-
-    //printf("Doing the chain with %d,%d\n", i,j);
-
-	if (left < right) {
-
-		int k;
-        
-		k = split[left][right];
-       
-		pos = getRecursiveChain(split,order, left, k,  pos);
-
-		pos = getRecursiveChain(split,order, k+1, right, pos);
-
-        //printf("left is %d, right is %d\n",left,right);
-        //printf("split position k is %d\n",k);
-        //printf("pos is %d\n",pos);
-        
-        order[pos] = k;
-
-        order[pos+1] = right;
-
-        pos = pos+2;
-
-        return pos;
-
-	}
-
-    return pos;
-
-}
-
-/* Iterative function to call recursive function with error handling
- *
- * Arguments:
- * split = Result matrix from DP which gives a split position for each chain
- * order = Array where the multiplication order is saved
- * n = Number of matrices
- *
- */
-
-void getChainOrder(int **split, int *order, int n) {
-
-    int pos = 0;
-    
-    pos = getRecursiveChain(split,order,0,n-1,pos);
-
-    if(pos != 2*(n-1))
-        printf("Error in creating the order array! Pos is %d instead of %d! \n\n", pos, 2*n);
-
-}
-
-/* Chain order is set to consecutive multiplication order 
- *
- * Arguments:
- *
- * order - Array where multiplication order is saved
- * n = Number of matrices
- *
- * #############CURRENTLY OBSOLETE##############
- */
-
-void setConsecutiveOrder(int *order, int n) {
-
-    int i;
-
-    for(i=0;i<n-1;i++) {
-        order[2*i] = i;
-        order[2*i+1] = i+1;
-    }
-
-}
-
-/* Function to get a multiplication order for omp task parallelism via binary tree
- *
- * Arguments:
- *
- * n = Number of matrices
- *
- * Return arguments:
- *
- * *order = Multiplication order
- *
- *
-
-*int getbinaryTreeOrder(int n) {
-
-    int tmp = n;
-    int level = 0;
-    
-    while(n >> 1) ++level;
-
-    int *binTreeOrder = malloc(
-
-    return *order;
-
-}*/

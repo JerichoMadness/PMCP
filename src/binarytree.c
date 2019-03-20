@@ -220,33 +220,3 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
     return removed;
         
 }
-
-int* extractDependencies(int *dependency, struct node* nd) {
-
-    //If node has left child, it depends on it
-    if((nd->cLeft) != NULL) {
-        dependency[2*(nd->opNum)] = (nd->cLeft)->opNum;
-    } else {
-        dependency[2*(nd->opNum)] = -1;
-    }
-
-    //If node has right child, it depends on it
-    if((nd->cRight) != NULL)
-        dependency[(2*(nd->opNum))+1] = (nd->cRight)->opNum;
-    else
-        dependency[(2*(nd->opNum))+1] = -1;
-
-    //printf("Inserted dependency[%d] = %d\n\n",(2*(nd->opNum))+1, dependency[(2*(nd->opNum))+1]);
-    //printf("Inserted dependency[%d] = %d\n\n",2*(nd->opNum), dependency[2*(nd->opNum)]);
-
-    //Traverse Children
-    if((nd->cLeft == NULL) && (nd->cLeft = NULL))
-        return dependency;
-    if(nd->cLeft != NULL)
-        dependency = extractDependencies(dependency, nd->cLeft);
-    if(nd->cRight != NULL)
-        dependency = extractDependencies(dependency, nd->cRight);
-
-    return dependency;
-
-}
