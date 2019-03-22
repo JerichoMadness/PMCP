@@ -26,11 +26,11 @@ void resetMatricesCopy(double **A, double **copyA, int *sizes, int n) {
     for(i=0;i<n;i++) {
         double *pointer;
         int length = sizes[i]*sizes[i+1];
-        pointer = mkl_realloc(copyA[i],length);
+        pointer = mkl_realloc(copyA[i],length*sizeof(double));
         if (pointer == NULL)
             printf("Error, pointer is NULL\n\n");
         copyA[i] = pointer;
-        memcpy(copyA[i],A[i],length);
+        memcpy(copyA[i],A[i],length*sizeof(double));
     }
 
 }
@@ -52,13 +52,13 @@ void setupMatrices(double **A, double **copyA, double **interRes, int *sizes, in
     int i;
 
 	for (i=0; i<n; i++) { 
-		A[i] = (double*) mkl_malloc(sizes[i]*sizes[i+1]*sizeof(double),64);
-        copyA[i] =  (double*) mkl_malloc(sizes[i]*sizes[i+1]*sizeof(double),64);
+		A[i] = (double*) mkl_malloc((sizes[i]*sizes[i+1])*sizeof(double),64);
+        copyA[i] =  (double*) mkl_malloc((sizes[i]*sizes[i+1])*sizeof(double),64);
         
-        if(i<n-1)
+        if(i<n-1) {
             //Malloc matrices for consecutive multiplication as default
             interRes[i] = (double*) mkl_malloc(sizes[0]*sizes[i+2]*sizeof(double),64);
-
+        }
     }
 
 }
@@ -79,12 +79,15 @@ void initializeMatrices (double **A, double **copyA, int *sizes, int n) {
 
     int i,j;
 
-	for (i=0; i<n; i++) 
-		for (j=0; j<sizes[i]*sizes[i+1]; j++)
+	for (i=0; i<n; i++) { 
+		for (j=0; j<(sizes[i]*sizes[i+1]); j++) {
 			A[i][j] =  (((double) rand() / (double) RAND_MAX));
+        }
+        //printf("Last value %d in matrix %lu is %lf\n\n",i,sizes[i]*sizes[i+1],A[i][sizes[i]*sizes[i+1]-1]);
+    }
 
     for (i=0; i<n; i++) 
-        memcpy(copyA[i],A[i],sizes[i]*sizes[i+1]);
+        memcpy(copyA[i],A[i],sizes[i]*sizes[i+1]*sizeof(double));
 
 }
 
@@ -263,6 +266,7 @@ void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
         double *pointer;
      	pointer = (double*) mkl_realloc(interRes[i],sizes[order[2*i]]*sizes[order[2*i+1]+1]*sizeof(double));
         interRes[i] = pointer;
+        if(interRes[i] == NULL) printf("interRes[%d] is empty!\n\n",i);
         sizes[order[2*i+1]] = sizes[order[2*i]];
         //printf("The intermatrix %d has the size %dx%d\n",i,sizes[order[2*i]],sizes[order[2*i+1]+1]);
     }

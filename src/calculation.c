@@ -27,17 +27,17 @@
  *
  */
 
-double calculateChainIterative(double **A, double **interRes, int *sizes, struct node *nd, int N)  {
+double calculateChainIterative(double **A, double **interRes, int *sizes, struct node *nd)  {
 
     double timeB4, timeAfter, timeSum;
     timeSum = 0.;
 
     if((nd->cLeft) != NULL) {
-        timeSum = timeSum + calculateChainIterative(A,interRes,sizes,nd->cLeft,N);   
+        timeSum = timeSum + calculateChainIterative(A,interRes,sizes,nd->cLeft);   
     }
 
     if((nd->cRight) != NULL) {
-        timeSum = timeSum + calculateChainIterative(A,interRes,sizes,nd->cRight,N);
+        timeSum = timeSum + calculateChainIterative(A,interRes,sizes,nd->cRight);
     }
 
     int posX,posY;
@@ -55,11 +55,18 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
     m = sizes[posX];
     k = sizes[posX+1];
     n = sizes[posY+1];
-    
+
+    if(sizes[posX+1] != sizes[posY])
+        printf("Error: Matrix sizes are not the same! Multiplying (%dx%d) and (%dx%d)\n\n", sizes[posX],sizes[posX+1],sizes[posY],sizes[posY+1]);
+  
+    int i;
+   
+    printf("Last value in matrx A[%d] is %lf\n\n",posX,A[posX][124998]);
+ 
     if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[opPos]) == NULL)
         printf("Error! One of the matrices is empty!");
 
-    printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
+    printf("Using matrices %d(%dx%d) and %d(%dx%d) and saving the result in intermediate matrix %d\n\n",posX,m,k,posY,k,n,opPos);
 
     timeB4 = bli_clock();
 
@@ -90,7 +97,7 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
 }
 
 
-void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, int N) {
+void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd) {
 
     int posX,posY;
 
@@ -133,34 +140,34 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
 }
 
-void processTree(double **A, double **interRes, int *sizes, struct node *nd, int N) {
+void processTree(double **A, double **interRes, int *sizes, struct node *nd) {
 
 
     if(nd->cLeft != NULL) {
-        #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd) 
+        #pragma omp task shared(A, interRes, sizes), firstprivate(nd) 
         {
         int id = omp_get_thread_num();
         //printf("I am thread %d in left child! \n\n",id);
-        processTree(A,interRes,sizes,nd->cLeft,N);   
+        processTree(A,interRes,sizes,nd->cLeft);   
         }
     }
 
     if(nd->cRight != NULL) {
-        #pragma omp task shared(A, interRes, sizes, N), firstprivate(nd)
+        #pragma omp task shared(A, interRes, sizes), firstprivate(nd)
         {
         int id = omp_get_thread_num();
         //printf("I am thread %d in right child!\n\n",id);
-        processTree(A,interRes,sizes,nd->cRight,N);
+        processTree(A,interRes,sizes,nd->cRight);
         }
     }
 
     #pragma omp taskwait
 
-    multiplyMatrix(A,interRes,sizes,nd,N);
+    multiplyMatrix(A,interRes,sizes,nd);
 
 }
 
-double calculateChainParallel(double **A, double **interRes, int *sizes, struct node *root, int N)  {
+double calculateChainParallel(double **A, double **interRes, int *sizes, struct node *root)  {
 
     double timeB4, timeAfter, timeSum;
     timeSum = 0.;
@@ -178,7 +185,7 @@ double calculateChainParallel(double **A, double **interRes, int *sizes, struct 
     #pragma omp parallel
     #pragma omp single
     //funProcess(root);
-    processTree(A, interRes, sizes, root, N);
+    processTree(A, interRes, sizes, root);
     #pragma omp taskwait
 
     timeAfter = bli_clock();

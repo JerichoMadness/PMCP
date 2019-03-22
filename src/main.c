@@ -43,7 +43,7 @@
  *
  */
 
-#define N 5
+#define N 5 
 
 /* Value how many iterations a computation should walk through
  *
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     copyA = (double **) mkl_malloc(N*sizeof(double*),64);
 
     double **interRes;
-    interRes = (double **) mkl_malloc(N*sizeof(double*),64);
+    interRes = (double **) mkl_malloc((N-1)*sizeof(double*),64);
 	
     if ((A == NULL) || (interRes == NULL)) {
 	
@@ -165,10 +165,10 @@ int main(int argc, char *argv[]) {
 
     //TODO Try to find a better value for those chars?
     char *statString;
-    statString = malloc(10*N+512*sizeof(char));    
+    statString = (char*) malloc(10*N+512*sizeof(char));    
 
     char *sizeString;
-    sizeString = malloc(10*N*sizeof(char));
+    sizeString = (char*) malloc(10*N*sizeof(char));
 
     int numCol;
 
@@ -255,7 +255,8 @@ int main(int argc, char *argv[]) {
 
     resetCopySizes(sizes,copySizes,N);
 
-    for(i=0;i<numOrder;i++) {
+    for(i=0;i<5;i++) {
+    //for(i=0;i<numOrder;i++) {
 
         for(j=0;j<NRUNS;j++) {
 
@@ -267,8 +268,8 @@ int main(int argc, char *argv[]) {
 
             printf("Finally calculating the results...\n\n");
 
-            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i],N);
-            //timeMeasure = calculateChainParallel(copyA,interRes,copySizes,allTree[i],N);
+            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i]);
+            //timeMeasure = calculateChainParallel(copyA,interRes,copySizes,allTree[i]);
 
             printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
             
@@ -289,7 +290,7 @@ int main(int argc, char *argv[]) {
 
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
 
-	/*for (i=0; i<N; i++) {
+	for (i=0; i<N; i++) {
     	mkl_free(A[i]);
         mkl_free(interRes[i]);
     }
@@ -297,11 +298,13 @@ int main(int argc, char *argv[]) {
     mkl_free(A);
     mkl_free(interRes); 
 
-    for(i=0;i<fac;i++)
+    for(i=0;i<numOrder+removed;i++) {
         free(allOrder[i]);
+        destroyTree(allTree[i]);
+    }
 
     free(allOrder);
-    free(allTree);*/
+    free(allTree);
     free(orderCostFP);
     free(rankFP);
     free(orderCostMEM);
