@@ -59,10 +59,6 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
     if(sizes[posX+1] != sizes[posY])
         printf("Error: Matrix sizes are not the same! Multiplying (%dx%d) and (%dx%d)\n\n", sizes[posX],sizes[posX+1],sizes[posY],sizes[posY+1]);
   
-    int i;
-   
-    printf("Last value in matrx A[%d] is %lf\n\n",posX,A[posX][124998]);
- 
     if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[opPos]) == NULL)
         printf("Error! One of the matrices is empty!");
 
@@ -78,14 +74,8 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
 
     printf("Intermediate results: %lfs. Overall: %lfs\n\n", (timeAfter - timeB4), timeSum);
 
-    double* pointer;
-    pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
-    if (pointer == NULL)
-        printf("Error allocating!\n\n");
-    A[posY] = pointer;
-    //printf("Realloced\n");
-     
-    memcpy(A[posY],interRes[opPos],m*n*sizeof(double));
+    A[posY] = interRes[opPos];
+    
     //printf("Repositioned\n");
     
     sizes[posY] = m;
@@ -124,14 +114,8 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd) 
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
 
-    double* pointer;
-    pointer =  mkl_realloc(A[posY],m*n*sizeof(double));
-    if (pointer == NULL)
-        printf("Error allocating!\n\n");
-    A[posY] = pointer;
-    //printf("Realloced\n");
+    A[posY] = interRes[opPos];
      
-    memcpy(A[posY],interRes[opPos],m*n*sizeof(double));
     //printf("Repositioned\n");
     
     sizes[posY] = m;
@@ -146,7 +130,7 @@ void processTree(double **A, double **interRes, int *sizes, struct node *nd) {
     if(nd->cLeft != NULL) {
         #pragma omp task shared(A, interRes, sizes), firstprivate(nd) 
         {
-        int id = omp_get_thread_num();
+        //int id = omp_get_thread_num();
         //printf("I am thread %d in left child! \n\n",id);
         processTree(A,interRes,sizes,nd->cLeft);   
         }
@@ -155,7 +139,7 @@ void processTree(double **A, double **interRes, int *sizes, struct node *nd) {
     if(nd->cRight != NULL) {
         #pragma omp task shared(A, interRes, sizes), firstprivate(nd)
         {
-        int id = omp_get_thread_num();
+        //int id = omp_get_thread_num();
         //printf("I am thread %d in right child!\n\n",id);
         processTree(A,interRes,sizes,nd->cRight);
         }

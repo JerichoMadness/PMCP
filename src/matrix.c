@@ -24,13 +24,10 @@ void resetMatricesCopy(double **A, double **copyA, int *sizes, int n) {
     int i;
 
     for(i=0;i<n;i++) {
-        double *pointer;
-        int length = sizes[i]*sizes[i+1];
-        pointer = mkl_realloc(copyA[i],length*sizeof(double));
-        if (pointer == NULL)
-            printf("Error, pointer is NULL\n\n");
-        copyA[i] = pointer;
-        memcpy(copyA[i],A[i],length*sizeof(double));
+        if(A[i] == NULL)
+            printf("Error A[%d] is null!\n\n",i);
+
+        copyA[i] = A[i];
     }
 
 }
@@ -47,18 +44,13 @@ void resetMatricesCopy(double **A, double **copyA, int *sizes, int n) {
  *
  */
 
-void setupMatrices(double **A, double **copyA, double **interRes, int *sizes, int n) {
+void setupMatrices(double **A, double **copyA, int *sizes, int n) {
 
     int i;
 
 	for (i=0; i<n; i++) { 
 		A[i] = (double*) mkl_malloc((sizes[i]*sizes[i+1])*sizeof(double),64);
-        copyA[i] =  (double*) mkl_malloc((sizes[i]*sizes[i+1])*sizeof(double),64);
-        
-        if(i<n-1) {
-            //Malloc matrices for consecutive multiplication as default
-            interRes[i] = (double*) mkl_malloc(sizes[0]*sizes[i+2]*sizeof(double),64);
-        }
+        copyA[i] =  A[i];
     }
 
 }
@@ -85,9 +77,6 @@ void initializeMatrices (double **A, double **copyA, int *sizes, int n) {
         }
         //printf("Last value %d in matrix %lu is %lf\n\n",i,sizes[i]*sizes[i+1],A[i][sizes[i]*sizes[i+1]-1]);
     }
-
-    for (i=0; i<n; i++) 
-        memcpy(copyA[i],A[i],sizes[i]*sizes[i+1]*sizeof(double));
 
 }
 
@@ -247,6 +236,15 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
 }
 
+void resetInterMatrices(double **interRes, int n) {
+
+    int i;
+
+    for(i=0;i<n;i++)
+        mkl_free(interRes[i]); 
+
+}
+
 /* Function for allocating memory for intermediate matrix results
  *
  * Arguments:
@@ -262,13 +260,11 @@ void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
 
     int i;
 
-    for(i=0;i<n-1;i++) {
-        double *pointer;
-     	pointer = (double*) mkl_realloc(interRes[i],sizes[order[2*i]]*sizes[order[2*i+1]+1]*sizeof(double));
-        interRes[i] = pointer;
-        if(interRes[i] == NULL) printf("interRes[%d] is empty!\n\n",i);
-        sizes[order[2*i+1]] = sizes[order[2*i]];
+    for(i=0;i<n;i++) {
         //printf("The intermatrix %d has the size %dx%d\n",i,sizes[order[2*i]],sizes[order[2*i+1]+1]);
+
+     	interRes[i] = (double*) mkl_malloc(sizes[order[2*i]]*sizes[order[2*i+1]+1]*sizeof(double),64);       
+        sizes[order[2*i+1]] = sizes[order[2*i]];
     }
     
     //printf("\n");

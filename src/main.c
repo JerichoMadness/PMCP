@@ -43,7 +43,7 @@
  *
  */
 
-#define N 5 
+#define N 4
 
 /* Value how many iterations a computation should walk through
  *
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
 
     printf("\nAllocation memory for matrices...\n\n");
 
-	setupMatrices(A,copyA,interRes,copySizes,N);
+	setupMatrices(A,copyA,copySizes,N);
 
     printf("Creating matrices with random values...\n\n");
 
@@ -255,14 +255,14 @@ int main(int argc, char *argv[]) {
 
     resetCopySizes(sizes,copySizes,N);
 
-    for(i=0;i<5;i++) {
-    //for(i=0;i<numOrder;i++) {
+    //for(i=0;i<5;i++) {
+    for(i=0;i<numOrder;i++) {
 
         for(j=0;j<NRUNS;j++) {
 
             printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
 
-            setupInterMatrices(interRes,allOrder[i],copySizes,N);
+            setupInterMatrices(interRes,allOrder[i],copySizes,N-1);
 
             resetCopySizes(sizes,copySizes,N);
 
@@ -276,6 +276,8 @@ int main(int argc, char *argv[]) {
             resetMatricesCopy(A,copyA,copySizes,N);
 
             resetCopySizes(sizes,copySizes,N);
+
+            resetInterMatrices(interRes,N-1);
 
             printf("Quickly adding the statistics...\n\n");
 
@@ -292,7 +294,6 @@ int main(int argc, char *argv[]) {
 
 	for (i=0; i<N; i++) {
     	mkl_free(A[i]);
-        mkl_free(interRes[i]);
     }
 
     mkl_free(A);
