@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "helper.h"
 
 struct node {
     int mLeft;
@@ -35,7 +36,7 @@ void printTree(struct node *nd) {
 
 void destroyTree(struct node *leaf)
 {
-  if( leaf != 0 )
+  if( leaf != NULL )
   {
       destroyTree(leaf->cLeft);
       destroyTree(leaf->cRight);
@@ -101,8 +102,7 @@ struct node* createTree(struct node *root, int *order, int n) {
 
     //printf("Start creating tree!\n\n");
 
-    //Start at n-2 due to 1) Ops start at 0, 2) N-1 Operations
-    for(i=n-2;i>=0;i--) {
+    for(i=n-1;i>=0;i--) {
         //printf("Inserted operation number %d (%d,%d)\n\n",i,order[2*i],order[(2*i)+1]);
         root = insert(root,order[2*i],order[(2*i)+1],i);
     }
@@ -182,12 +182,12 @@ void removeTree(int **allOrder, struct node **allTree, int pos, int length, int 
 
     for(i=pos;i<length-1;i++) {
         //printf("Start at %d\n\n",i);
-        memcpy(allOrder[i],allOrder[i+1],2*(n-1)*sizeof(int));
+        memcpy(allOrder[i],allOrder[i+1],2*n*sizeof(int));
         memcpy(allTree[i],allTree[i+1],sizeof(struct node));
     }
 
     //printf("Finished deleting tree!\n\n");
-    destroyTree(allTree[length]);
+    //destroyTree(allTree[length-1]);
 
 }
 
@@ -196,27 +196,106 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
     int removed = 0;
     int equiv = 0;
     int i,j;
+    
+    //When a duplicate is removed, all trees move up after the duplicate move up one position
+    //This bool is needed, so if in the last iteration a duplicate was removed the next comparison
+    //with allTree[i] is with the position of the last iteration, since there is now a new tree
+    int removedThisIt = 0;
 
-    for(i=0;i<length;i++) {
-        if(i+removed >= length) {
-            //printf("I'm breaking in iteration %d since %d tree(s) has/have already been removed\n\n",i,removed);
+    for(i=0;i<length-1;i++) {
+        if(i+removed > length) {
+            //printf("I'm breaking in iteration i = %d since %d tree(s) has/have already been removed\n\n",i,removed);
             break;
         }
 
         for(j=i+1;j<length;j++) {
-            if(j+removed >= length)
-                break;
-            //printf("Checking equivalence for trees %d, %d\n\n",i,j);
-            equiv = checkEquivalence(allTree[i], allTree[j]);
+            if(j-removedThisIt >= length-removed) {
+               //printf("I'm breaking in iteration j = %d since %d tree(s) has/have already been removed\n\n",j-removedThisIt,removed);
+               break;
+            }
+ 
+            /*printTree(allTree[i]);
+            printf("\n");
+            printTree(allTree[j-removedThisIt]);
+            printf("\n"); */
+           
+            //printf("Checking equivalence for trees %d, %d\n\n",i,j-removedThisIt);
+            equiv = checkEquivalence(allTree[i], allTree[j-removedThisIt]);
             //printf("Equivalence is %d\n\n",equiv);
             if (equiv == 1) {
-                removeTree(allOrder, allTree, j, length-removed, n);
+                //printf("Removing %d after comparing it with %d\n\n",j-removedThisIt,i);
+                removeTree(allOrder, allTree, j-removedThisIt, length-removed, n);
                 removed = removed+1;
+                removedThisIt = removedThisIt+1;
             }
+
         }
-        
+
+        removedThisIt = 0;       
+ 
     }
 
     return removed;
         
+}
+
+void createRelevantTrees(struct node **relTree, int **allOrder, int **relOrder, int *rankFP, int *rankMEM, int top, int bottom, int n) {
+
+    int relNumOrder = 2*(top+bottom);
+
+    int numOrder = factorial(n);
+
+    int i,j;
+    int created;
+    int pos = 0;
+
+    for(i=0;i<top;i++) {
+        created = 0;
+        for(j=0;j<numOrder;j++) {
+            if(rankFP[j] == i+1) {
+                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
+                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
+                created = created+1;
+                pos = pos+1;
+                //printf("Used order %d!\n",j);
+            }
+
+            if(rankMEM[j] == i+1) {
+                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
+                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
+                created = created+1;
+                pos = pos+1;
+                //printf("Used order %d!\n",j);
+           }
+            
+            if(created == 2) break;
+        
+        }
+    
+    }
+
+    for(i=0;i<bottom;i++) {
+        created = 0;
+        for(j=0;j<numOrder;j++) {
+           if(rankFP[j] == numOrder-i) {
+                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
+                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
+                created = created+1;
+                pos = pos+1;
+                //printf("Used order %d!\n",j);
+           }
+            if(rankMEM[j] == numOrder-i) {
+                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
+                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
+                created = created+1;
+                pos = pos+1;
+                //printf("Used order %d!\n",j);
+           }
+            
+            if(created == 2) break;
+    
+        }
+
+    }
+
 }

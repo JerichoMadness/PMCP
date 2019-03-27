@@ -111,7 +111,7 @@ void getAllOrders(int **allOrder, int n) {
         printf(" ]\n");
     }
 
-    printf("\n\n");*/
+    printf("\n");*/
 
     free(permChain);
 
@@ -130,11 +130,11 @@ void getAllOrders(int **allOrder, int n) {
 void convertOrders(int **allOrder, int n) {
 
     int i,j,k,fac,contained,val;
-    fac = factorial(n-1);
+    fac = factorial(n);
 
     for(i=0;i<fac;i++) {
         
-        for(j=1;j<n-1;j++) {    
+        for(j=1;j<n;j++) {    
        
             val = allOrder[i][2*j+1];
             contained = contains(allOrder[i],val,2*j+1);
@@ -157,7 +157,9 @@ void convertOrders(int **allOrder, int n) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
-    }*/
+    }
+
+    printf("\n");*/
 
 }
 
@@ -225,7 +227,7 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
         }
 
-        resetCopySizes(normSizes,copySizes,n);
+        resetCopySizes(normSizes,copySizes,n+1);
     
     }
 
@@ -261,9 +263,15 @@ void setupInterMatrices(double **interRes, int *order, int *sizes, int n) {
     int i;
 
     for(i=0;i<n;i++) {
+        
         //printf("The intermatrix %d has the size %dx%d\n",i,sizes[order[2*i]],sizes[order[2*i+1]+1]);
 
-     	interRes[i] = (double*) mkl_malloc(sizes[order[2*i]]*sizes[order[2*i+1]+1]*sizeof(double),64);       
+        int m,n;
+        m = sizes[order[2*i]];
+        n = sizes[order[2*i+1]+1];
+
+        interRes[i] = (double*) mkl_malloc(m*n*sizeof(double),64);
+       
         sizes[order[2*i+1]] = sizes[order[2*i]];
     }
     

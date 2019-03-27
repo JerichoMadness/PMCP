@@ -51,6 +51,11 @@
 
 #define NRUNS 1
 
+#define NCF 2
+
+#define TOP 5
+
+#define BOTTOM 3
 
 int main(int argc, char *argv[]) {
 
@@ -121,7 +126,7 @@ int main(int argc, char *argv[]) {
     //Check number of arguments and set matrix sizes accordingly
     if (argc == 1) {
         sizeMin = 10;
-        sizeMax = 5000;
+        sizeMax = 1000;
 
     } else if (argc == 2) {
         sizeMin = 10;
@@ -144,10 +149,17 @@ int main(int argc, char *argv[]) {
     int removed = 0;
     int numOrder = fac;
 
+    int numRelOrder = NCF*(TOP+BOTTOM);
+
     int **allOrder;
     allOrder = (int**) malloc(numOrder*sizeof(int*));
     for(i=0;i<numOrder;i++)
         allOrder[i] = (int*) malloc((2*(N-1))*sizeof(int));
+
+    int **relOrder;
+    relOrder = (int**) malloc(numRelOrder*sizeof(int*));
+    for(i=0;i<numRelOrder;i++)
+        relOrder[i] = (int*) malloc((2*(N-1))*sizeof(int));
 
     int *orderCostFP;
     orderCostFP = (int*) malloc(numOrder*sizeof(int));
@@ -172,10 +184,15 @@ int main(int argc, char *argv[]) {
 
     int numCol;
 
-    struct node **allTree;
+    /*struct node **allTree;
     allTree = (struct node**) malloc(numOrder*sizeof(struct node*));
     for(i=0;i<numOrder;i++)
-        allTree[i] = NULL;
+        allTree[i] = NULL;*/
+
+    struct node **relTree;
+    relTree = (struct node**) malloc(numRelOrder*sizeof(struct node*));
+    for(i=0;i<numRelOrder;i++)
+        relTree[i] = NULL;
  
     /**
      *
@@ -216,22 +233,59 @@ int main(int argc, char *argv[]) {
 
     printf("Converting all orders so they are readable...\n\n");
 
-    convertOrders(allOrder,N);
+    convertOrders(allOrder,N-1);
 
-    printf("Creating traversable trees...\n\n");
+    /*printf("Creating traversable trees...\n\n");
 
     for(i=0;i<numOrder;i++) {
-        allTree[i] = createTree(allTree[i],allOrder[i], N);  
+        allTree[i] = createTree(allTree[i],allOrder[i], N-1);  
         //printf("Created tree %d!\n\n",i);
     }
 
     printf("Removing duplicate trees and multiplication orders...\n\n");
 
-    removed = removeDuplicates(allOrder, allTree, numOrder, N);    
+    removed = removeDuplicates(allOrder, allTree, numOrder, N-1);    
 
     printf("Removed %d duplicate(s)!\n\n",removed);
 
-    numOrder = fac-removed;
+    numOrder = fac-removed;*/
+
+    printf("Now computing the costs for each pair (order,cost function)...\n\n");
+
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
+
+    computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
+ 
+    resetCopySizes(sizes,copySizes,N+1);
+ 
+    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
+  
+    computeChainCosts(allOrder,orderCostMEM,copySizes,N,numOrder,'M');
+
+    resetCopySizes(sizes,copySizes,N+1);
+
+    printf("Now sorting the costs from lowest to highest...\n\n");
+
+    rankElements(orderCostFP,rankFP,numOrder);
+
+    rankElements(orderCostMEM,rankMEM,numOrder);
+
+    printf("Now creating the relevant trees...\n\n");
+
+    createRelevantTrees(relTree,allOrder,relOrder,rankFP,rankMEM,TOP,BOTTOM,N-1);
+
+    printf("Now removing duplicates...\n\n");
+
+    removed = removeDuplicates(relOrder,relTree,numRelOrder,N-1);
+
+    printf("Removed %d duplicate(s) out of %d trees!\n\n",removed,numRelOrder);
+
+    numRelOrder = numRelOrder - removed;
+
+    for(i=0;i<numOrder;i++)
+        free(allOrder[i]);
+    
+    free(allOrder);
 
 	printf("Now the evaluation results... \n\n");
 
@@ -241,47 +295,33 @@ int main(int argc, char *argv[]) {
 
 /********** TIMING SECTION **************/
 
-    printf("Now computing all costs for minimum flops...\n\n");
-
-    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
-
-    computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
-
-    rankElements(orderCostFP,rankFP,numOrder);
-    
-    computeChainCosts(allOrder,orderCostMEM,copySizes,N,numOrder,'M');
-
-    rankElements(orderCostMEM,rankMEM,numOrder);
-
-    resetCopySizes(sizes,copySizes,N);
-
-    //for(i=0;i<5;i++) {
-    for(i=0;i<numOrder;i++) {
+    for(i=0;i<numRelOrder;i++) {
+    //for(i=0;i<numOrder;i++) {
 
         for(j=0;j<NRUNS;j++) {
 
             printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
 
-            setupInterMatrices(interRes,allOrder[i],copySizes,N-1);
+            setupInterMatrices(interRes,relOrder[i],copySizes,N-1);
 
-            resetCopySizes(sizes,copySizes,N);
+            resetCopySizes(sizes,copySizes,N+1);
 
             printf("Finally calculating the results...\n\n");
 
-            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,allTree[i]);
+            timeMeasure = calculateChainIterative(copyA,interRes,copySizes,relTree[i]);
             //timeMeasure = calculateChainParallel(copyA,interRes,copySizes,allTree[i]);
 
             printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
             
             resetMatricesCopy(A,copyA,copySizes,N);
 
-            resetCopySizes(sizes,copySizes,N);
+            resetCopySizes(sizes,copySizes,N+1);
 
             resetInterMatrices(interRes,N-1);
 
-            printf("Quickly adding the statistics...\n\n");
+            printf("Quickly adding the results to the statistics...\n\n");
 
-            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,N);
+            createStatisticString(statString,sizeString,relOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,N);
            
             addStatisticsToFile(statString,statString,numCol); 
 
@@ -298,14 +338,15 @@ int main(int argc, char *argv[]) {
 
     mkl_free(A);
     mkl_free(interRes); 
+    mkl_free(copyA);
 
-    for(i=0;i<numOrder+removed;i++) {
-        free(allOrder[i]);
-        destroyTree(allTree[i]);
+    for(i=0;i<numRelOrder;i++) {
+        free(relOrder[i]);
+        destroyTree(relTree[i]);
     }
 
-    free(allOrder);
-    free(allTree);
+    free(relOrder);
+    free(relTree);
     free(orderCostFP);
     free(rankFP);
     free(orderCostMEM);

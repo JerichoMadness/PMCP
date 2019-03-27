@@ -62,7 +62,7 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
     if((A[posX] == NULL) || (A[posY] == NULL) || (interRes[opPos]) == NULL)
         printf("Error! One of the matrices is empty!");
 
-    printf("Using matrices %d(%dx%d) and %d(%dx%d) and saving the result in intermediate matrix %d\n\n",posX,m,k,posY,k,n,opPos);
+    //printf("Using matrices %d(%dx%d) and %d(%dx%d) and saving the result in intermediate matrix %d\n\n",posX,m,k,posY,k,n,opPos);
 
     timeB4 = bli_clock();
 
@@ -72,7 +72,7 @@ double calculateChainIterative(double **A, double **interRes, int *sizes, struct
 
     timeSum = timeSum + (timeAfter-timeB4);
 
-    printf("Intermediate results: %lfs. Overall: %lfs\n\n", (timeAfter - timeB4), timeSum);
+    //printf("Final InterRes value: %lf. Intermediate results: %lfs. Overall: %lfs\n\n", interRes[opPos][m*n-1], (timeAfter - timeB4), timeSum);
 
     A[posY] = interRes[opPos];
     
