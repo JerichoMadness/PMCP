@@ -44,12 +44,12 @@ void destroyTree(struct node *leaf)
   }
 }
 
-struct node* newNode(int left, int right, int num) {
+struct node* newNode(int left, int right, int op) {
     
     struct node *nd = malloc(1*sizeof(struct node));    // "new" is like "malloc"
     nd->mLeft = left;
     nd->mRight = right;
-    nd->opNum = num;
+    nd->opNum = op;
     nd->cLeft = NULL;
     nd->cRight = NULL;
 
@@ -113,6 +113,25 @@ struct node* createTree(struct node *root, int *order, int n) {
 
 }
 
+
+/*void insertTreeSizes(struct node *nd, int *sizes) {
+
+    if(nd == NULL) return;
+
+    if(nd->cLeft != NULL) {
+        insertTreeSizes(nd->cLeft, sizes);
+        compCost = compCost + nd->cLeft->compCost
+    }
+
+    if(nd->cRight != NULL) {
+        insertTreeSizes(nd->cRight, sizes);
+        compCost = 
+    }
+
+    nd->curCost = sizes[mLeft]*sizes[mRight];
+    
+
+}*/
 
 /* Function to get the Depth of a tree
  *
@@ -239,63 +258,3 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
         
 }
 
-void createRelevantTrees(struct node **relTree, int **allOrder, int **relOrder, int *rankFP, int *rankMEM, int top, int bottom, int n) {
-
-    int relNumOrder = 2*(top+bottom);
-
-    int numOrder = factorial(n);
-
-    int i,j;
-    int created;
-    int pos = 0;
-
-    for(i=0;i<top;i++) {
-        created = 0;
-        for(j=0;j<numOrder;j++) {
-            if(rankFP[j] == i+1) {
-                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
-                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
-                created = created+1;
-                pos = pos+1;
-                //printf("Used order %d!\n",j);
-            }
-
-            if(rankMEM[j] == i+1) {
-                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
-                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
-                created = created+1;
-                pos = pos+1;
-                //printf("Used order %d!\n",j);
-           }
-            
-            if(created == 2) break;
-        
-        }
-    
-    }
-
-    for(i=0;i<bottom;i++) {
-        created = 0;
-        for(j=0;j<numOrder;j++) {
-           if(rankFP[j] == numOrder-i) {
-                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
-                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
-                created = created+1;
-                pos = pos+1;
-                //printf("Used order %d!\n",j);
-           }
-            if(rankMEM[j] == numOrder-i) {
-                relTree[pos] = createTree(relTree[pos],allOrder[j],n);
-                relOrder[pos] = memcpy(relOrder[pos],allOrder[j],2*n*sizeof(int));
-                created = created+1;
-                pos = pos+1;
-                //printf("Used order %d!\n",j);
-           }
-            
-            if(created == 2) break;
-    
-        }
-
-    }
-
-}

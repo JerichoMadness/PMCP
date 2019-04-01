@@ -123,21 +123,19 @@ void rankElements(int *cost, int *rank, int n) {
     int i, j; 
 
     int *tmp;
-    tmp = malloc(2*n*sizeof(int));
+    tmp = (int*) malloc(n*sizeof(int));
 
     //Use a tmp array to avoid rearranging original order
     for (i = 0; i < n; i++) { 
-        tmp[2*i] = cost[i];
-        tmp[(2*i)+1] = i;
+        tmp[i] = cost[i];
     }
 
     //Last i elements are already in place    
 
     for(i=0;i<n-1;i++) {
         for (j = 0; j < n-i-1; j++) {  
-            if (tmp[2*j] > tmp[2*(j+1)]) {
-                swap(tmp+(2*j), tmp+(2*(j+1)));
-                swap(tmp+(2*j)+1, tmp+(2*(j+1)+1));
+            if (tmp[j] > tmp[j+1]) {
+                swap(tmp+j, tmp+j+1);
             }
         }
     }
@@ -147,7 +145,7 @@ void rankElements(int *cost, int *rank, int n) {
     //Now map according ranks to the original array
     for(i=0;i<n;i++) {
         pos = 0;
-        while((cost[i] != tmp[2*pos]) || (i != tmp[(2*pos)+1]))
+        while(cost[i] != tmp[pos])
             pos = pos+1;
 
         rank[i] = pos+1;
@@ -176,8 +174,8 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
     int i;
 
 	for (i=0; i<n+1; i++) {
-		sizes[i] = (rand() % max) + min;
-        //sizes[i] = 1000;        
+		//sizes[i] = (rand() % max) + min;
+        sizes[i] = 1000;        
         copySizes[i] = sizes[i];
 	}
 
@@ -203,7 +201,8 @@ void resetCopySizes(int *sizes, int *copySizes, int n) {
 
 }
 
-/* To prevent over-/underflow during cost computation normalize the values by factor (sizeMax/sizeMin)/sizeMax
+/* To prevent over-/underflow during cost computation normalize the values by factor (sizeMax/sizeMin)/(sizeMax*n)
+ * Dividing by n is for scaling
  *
  * Arguments:
  *
@@ -218,7 +217,7 @@ void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n)
     int i;
 
     for (i=0;i<n+1;i++)
-        normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/sizeMax;
+        normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/(sizeMax*n);
 
 }     
 
