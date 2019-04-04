@@ -153,7 +153,7 @@ void convertOrders(int **allOrder, int n) {
 
     /*for(i=0;i<fac;i++) {
         printf("[ ");
-        for(j=0;j<n-1;j++) {
+        for(j=0;j<n;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
         }
         printf(" ]\n");
@@ -213,7 +213,9 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
                     m = copySizes[allOrder[i][2*j]];
                     l = copySizes[allOrder[i][2*j+1]+1];
-                
+
+                    //printf("m:%d ,l:%d\n",m,l);                   
+               
                     orderCost[i] = orderCost[i] + m*l;
                     
                     copySizes[allOrder[i][2*j+1]] = m;
@@ -223,7 +225,7 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
                 break;
 
             default:
-                printf("Wrong parameter!");
+                printf("Wrong parameter! %s", cf);
 
         }
 

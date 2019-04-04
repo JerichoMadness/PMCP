@@ -137,12 +137,7 @@ double calculateChainSingleParallel(double **A, double **interRes, int *sizes, s
 
     timeB4 = bli_clock();
 
-    int max = mkl_get_max_threads(); 
-
-    mkl_set_num_threads(max);
-
-    printf("Max num of threads: %d\n\n",max);
-   
+    //#pragma omp single
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
 
     timeAfter = bli_clock();

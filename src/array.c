@@ -140,6 +140,10 @@ void rankElements(int *cost, int *rank, int n) {
         }
     }
 
+    /*for(i=0;i<n;i++)
+        printf("%d\n",rank[i]);
+    printf("\n");*/
+
     int pos;
     
     //Now map according ranks to the original array

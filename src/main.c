@@ -57,15 +57,219 @@
 
 #define BOTTOM 3
 
-#define MODE 1
+/* MODE = 0: All orders
+ * MODE = 1: Only TOP and BOTTOM orders
+ *
+ */
+
+#define MODE 1 
 
 #define SEQ 1
 
-#define BLAS_PARL 1
+#define BLAS_PARL 0
 
-#define TASK_PARL 1
+#define TASK_PARL 0
 
-#define COMB_PARL 1
+#define COMB_PARL 0
+
+
+void specMode(struct node **allTree, double **A, double **copyA, double **interRes, int *sizes, int *copySizes, int **allOrder, int *orderCostFP, int *rankFP, int *orderCostMEM, int *rankMEM, char *statString, char *sizeString, int numOrder, int numCol, char mode) {
+
+    int i,j, indPos, rankPos;
+    double timeMeasure = 0.;
+
+    int numRelOrder = NCF*(TOP+BOTTOM);
+
+    int *relIndices = (int*) malloc(numRelOrder*sizeof(int));
+    for(i=0;i<numRelOrder;i++)
+        relIndices[i] = numOrder+1;
+
+    indPos = 0;
+
+    for(i=0;i<TOP;i++) {
+
+        if(indPos >= numOrder)
+            break;
+
+        rankPos = 0;
+
+        while((rankFP[rankPos] != i+1) && (rankPos < numOrder))
+            rankPos = rankPos+1;
+
+        if((!contains(relIndices,rankPos,indPos+1)) && (rankPos < numOrder)) {
+            relIndices[indPos] = rankPos;
+            indPos = indPos+1;
+            //printf("Added %d due to rankFP = %d\n\n",rankPos, rankFP[rankPos]);
+        }
+
+        rankPos = 0;
+
+        while((rankMEM[rankPos] != i+1) && (rankPos < numOrder))
+            rankPos = rankPos+1;
+
+        if((!contains(relIndices,rankPos,indPos+1)) && (rankPos < numOrder)) {
+            relIndices[indPos] = rankPos;
+            indPos = indPos+1;
+            //printf("Added %d due to rankMEM = %d\n\n",rankPos, rankMEM[rankPos]);
+        }   
+
+        //printf("I'm at end of %d, indpos is %d\n\n",i,indPos);  
+
+    }
+
+    for(i=0;i<BOTTOM;i++) {
+
+        if(indPos >= numOrder)
+            break;
+
+        rankPos = numOrder-1;
+
+        while((rankFP[rankPos] != numOrder-i) && (rankPos >= 0))
+            rankPos = rankPos-1;
+
+        if((!contains(relIndices,rankPos,indPos)) && (rankPos >= 0)) {
+            relIndices[indPos] = rankPos;
+            indPos = indPos+1;
+        }
+
+        rankPos = numOrder-1;
+
+        while((rankMEM[rankPos] != numOrder - i) && (rankPos >= 0))
+            rankPos = rankPos-1;
+
+        if((!contains(relIndices,rankPos,indPos)) && (rankPos >= 0)) {
+            relIndices[indPos] = rankPos;
+            indPos = indPos+1;
+        }     
+
+    }
+
+    int pos;
+
+    /*for(i=0;i<numRelOrder;i++)
+        printf("Pos: %d\n",relIndices[i]);
+    printf("\n");*/
+
+    for(i=0;i<numRelOrder;i++) {
+
+        if(relIndices[i] == numOrder+1)
+            break;
+
+        pos = relIndices[i];
+
+        for(j=0;j<NRUNS;j++) {
+
+            printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
+
+            setupInterMatrices(interRes,allOrder[pos],copySizes,N-1);
+
+            resetCopySizes(sizes,copySizes,N+1);
+
+            printf("Finally calculating the results...\n\n");
+
+            switch(mode) {
+
+                case 'S':
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos]);
+                    break;
+
+                case'B':
+                    timeMeasure = calculateChainSingleParallel(copyA,interRes,copySizes,allTree[pos]);
+                    break;
+    
+                case'T':       
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos]);
+                    break;
+            
+                default:
+                    printf("Not a valid mode: %s\n\n",mode);
+                    break;
+
+            }
+
+            printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
+            
+            resetMatricesCopy(A,copyA,copySizes,N);
+
+            resetCopySizes(sizes,copySizes,N+1);
+
+            resetInterMatrices(interRes,N-1);
+
+            printf("Quickly adding the results to the statistics...\n\n");
+
+            createStatisticString(statString,sizeString,allOrder[pos],orderCostFP[pos],rankFP[pos],orderCostMEM[pos],rankMEM[pos],timeMeasure,N);
+           
+            addStatisticsToFile(statString,statString,numCol); 
+
+        }
+
+    }
+
+    free(relIndices);
+
+}
+
+void allMode(struct node **allTree, double **A, double **copyA, double **interRes, int *sizes, int *copySizes, int **allOrder, int *orderCostFP, int *rankFP, int *orderCostMEM, int *rankMEM, char *statString, char *sizeString, int numCol, int numOrder, char mode) {
+
+    int i,j;
+
+    for(i=0;i<numOrder;i++)
+        printf("%d and %d\n",rankFP[i],rankMEM[i]);
+    printf("\n");
+
+    double timeMeasure = 0.;
+
+    for(i=0;i<numOrder;i++) {
+
+        for(j=0;j<NRUNS;j++) {
+
+            printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
+
+            setupInterMatrices(interRes,allOrder[i],copySizes,N-1);
+
+            resetCopySizes(sizes,copySizes,N+1);
+
+            printf("Finally calculating the results...\n\n");
+
+            switch(mode) {
+
+                case 'S':
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i]);
+                    break;
+
+                case'B':
+                    timeMeasure = calculateChainSingleParallel(copyA,interRes,copySizes,allTree[i]);
+                    break;
+    
+                case'T':       
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i]);
+                    break;
+            
+                default:
+                    printf("Not a valid mode: %s\n\n",mode);
+                    break;
+
+            }
+
+            printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
+            
+            resetMatricesCopy(A,copyA,copySizes,N);
+
+            resetCopySizes(sizes,copySizes,N+1);
+
+            resetInterMatrices(interRes,N-1);
+
+            printf("Quickly adding the results to the statistics...\n\n");
+
+            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,N);
+           
+            addStatisticsToFile(statString,statString,numCol); 
+
+        }
+
+    }
+
+}
 
 int main(int argc, char *argv[]) {
 
@@ -158,7 +362,6 @@ int main(int argc, char *argv[]) {
 
     int removed = 0;
     
-    int numRelOrder = NCF*(TOP+BOTTOM);
 
     int **allOrder;
     allOrder = (int**) malloc(numOrder*sizeof(int*));
@@ -180,8 +383,6 @@ int main(int argc, char *argv[]) {
 
     int *rankMEM;
     rankMEM = (int*) malloc(numOrder*sizeof(int));
-
-    double timeMeasure = 0.;
 
     //TODO Try to find a better value for those chars?
     char *statString;
@@ -258,12 +459,20 @@ int main(int argc, char *argv[]) {
     normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
 
     computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
- 
+
+    /*for(i=0;i<numOrder;i++)
+        printf("%d\n",orderCostFP[i]);
+    printf("\n");*/
+
     resetCopySizes(sizes,copySizes,N+1);
  
     normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
   
     computeChainCosts(allOrder,orderCostMEM,copySizes,N,numOrder,'M');
+
+    /*for(i=0;i<numOrder;i++)
+        printf("%d\n",orderCostMEM[i]);
+    printf("\n");*/
 
     resetCopySizes(sizes,copySizes,N+1);
 
@@ -273,6 +482,11 @@ int main(int argc, char *argv[]) {
 
     rankElements(orderCostMEM,rankMEM,numOrder);
 
+    /*for(i=0;i<numOrder;i++)
+        printf("%d and %d\n",rankFP[i],rankMEM[i]);
+    printf("\n");*/
+
+
 	printf("Now the evaluation results... \n\n");
 
 	//Now time to evaluate results with the different cost functions. 
@@ -281,41 +495,41 @@ int main(int argc, char *argv[]) {
 
 /********** TIMING SECTION **************/
 
-    for(i=0;i<numOrder;i++) {
+    if(MODE == 0) {
 
-        for(j=0;j<NRUNS;j++) {
+        if(SEQ)
+            allMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString,  numCol, numOrder, 'S');
 
-            printf("Setting up the matrices for the intermediate results in iteration %d, run %d\n\n",i,j);
+        if(BLAS_PARL)
+             allMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numCol, numOrder, 'B');
+ 
+        if(TASK_PARL)      
+             allMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numCol, numOrder, 'T');
 
-            setupInterMatrices(interRes,allOrder[i],copySizes,N-1);
+        if(COMB_PARL)
+             allMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numCol, numOrder, 'C');
 
-            resetCopySizes(sizes,copySizes,N+1);
 
-            printf("Finally calculating the results...\n\n");
+    } else if (MODE == 1) {
 
-            //timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i]);
-            timeMeasure = calculateChainSingleParallel(copyA,interRes,copySizes,allTree[i]);
-            //timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i]);
+        if(SEQ)
+            specMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numOrder, numCol, 'S');
 
-            printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
-            
-            resetMatricesCopy(A,copyA,copySizes,N);
+        if(BLAS_PARL)
+             specMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numOrder, numCol, 'B');
+ 
+        if(TASK_PARL)      
+             specMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numOrder, numCol, 'T');
 
-            resetCopySizes(sizes,copySizes,N+1);
+        if(COMB_PARL)
+             specMode(allTree,A, copyA, interRes, sizes, copySizes, allOrder, orderCostFP, rankFP, orderCostMEM, rankMEM, statString, sizeString, numOrder, numCol, 'C');
 
-            resetInterMatrices(interRes,N-1);
+    } else {
 
-            printf("Quickly adding the results to the statistics...\n\n");
-
-            createStatisticString(statString,sizeString,allOrder[i],orderCostFP[i],rankFP[i],orderCostMEM[i],rankMEM[i],timeMeasure,N);
-           
-            addStatisticsToFile(statString,statString,numCol); 
-
-        }
+        printf("ERROR! Invalid mode %d",MODE);
 
     }
-
-
+    
     printf("The chains have been calculated! Now a quick cleanup...\n\n");
 
 	for (i=0; i<N; i++) {
