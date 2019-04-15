@@ -33,7 +33,7 @@
  *
  */
 
-#define NRUNS 1
+#define NRUNS 3
 
 #define NCF 2
 
@@ -139,15 +139,19 @@ void specMode(struct node **allTree, double **A, double **copyA, double **interR
             switch(mode) {
 
                 case 'S':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos]);
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'S');
                     break;
 
                 case'B':
-                    timeMeasure = calculateChainSingleParallel(copyA,interRes,copySizes,allTree[pos]);
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'B');
                     break;
     
                 case'T':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos]);
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'T');
+                    break;
+ 
+                case'C':       
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'C');
                     break;
             
                 default:
@@ -156,7 +160,7 @@ void specMode(struct node **allTree, double **A, double **copyA, double **interR
 
             }
 
-            printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
+            printf("Finished calculating the chain in %lfs\n\n", timeMeasure);
             
             resetMatricesCopy(A,copyA,copySizes,N);
 
@@ -199,24 +203,28 @@ void allMode(struct node **allTree, double **A, double **copyA, double **interRe
             switch(mode) {
 
                 case 'S':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i]);
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'S');
                     break;
 
                 case'B':
-                    timeMeasure = calculateChainSingleParallel(copyA,interRes,copySizes,allTree[i]);
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'B');
                     break;
     
                 case'T':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i]);
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'T');
                     break;
             
+                case'C':       
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'C');
+                    break;
+ 
                 default:
                     printf("Not a valid mode: %s\n\n",mode);
                     break;
 
             }
 
-            printf("Finished calculating the chain for minimal flops! (%lfs)\n\n", timeMeasure);
+            printf("Finished calculating the chain in %lfs\n\n", timeMeasure);
             
             resetMatricesCopy(A,copyA,copySizes,N);
 

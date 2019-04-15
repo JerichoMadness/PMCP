@@ -42,7 +42,7 @@
  *
  */
 
-#define NRUNS 1
+#define NRUNS 3
 
 #define NCF 2
 
@@ -66,11 +66,11 @@
 
 #define SEQ 0
 
-#define BLAS_PARL 1
+#define BLAS_PARL 0
 
 #define TASK_PARL 0
 
-#define COMB_PARL 0
+#define COMB_PARL 1
 
 
 int main(int argc, char *argv[]) {
@@ -311,9 +311,7 @@ int main(int argc, char *argv[]) {
         printf("Cost of root %d: %lf\n\n",i,allTree[i]->cost);
     }*/
 
-    int nth = mkl_get_max_threads();
-
-	printf("Now the evaluation results using %d threads... \n\n",nth);
+	printf("Now the evaluation results... \n\n");
 
 	//Now time to evaluate results with the different cost functions. 
 	//After each cost function rewrite copyA to continue with next matrix
