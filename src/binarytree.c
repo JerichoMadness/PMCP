@@ -268,37 +268,36 @@ void insertCost(struct node *nd, int *sizes, char cf) {
 
     if(nd->cLeft != NULL) {
         insertCost(nd->cLeft, sizes, cf);
+        nd->cost = nd->cost + nd->cLeft->cost;
     }
 
     if(nd->cRight != NULL) {
         insertCost(nd->cRight, sizes, cf);
+        nd->cost = nd->cost + nd->cRight->cost;
     }
+
+    double m,k,n;
 
     switch(cf) {
 
         case 'F':
-            nd->cost = nd->cost + (double) sizes[nd->mLeft] * (double) sizes[nd->mRight] * (double) sizes[nd->mRight+1];
-            printf("Inserted cost");
+            m = (double) sizes[nd->mLeft]; 
+            k = (double) sizes[nd->mRight]; 
+            n = (double) sizes[nd->mRight+1];
+            nd->cost = nd->cost + (m*k*n);
+            //printf("Added %lf*%lf*%lf\n\n",m,k,n);
             break;
         case 'M':
-            nd->cost = nd->cost + (double) sizes[nd->mLeft] * (double) sizes[nd->mRight+1];
+            m = (double) sizes[nd->mLeft];
+            n = (double) sizes[nd->mRight+1];
+            nd->cost = nd->cost + (m*n);
             break;
         default:
             printf("Error: Wrong mode %c!\n\n",cf);
     }
 
 
-    if(nd->cLeft != NULL) {
-        nd->cost = nd->cost + nd->cLeft->cost;
-    }
-
-    if(nd->cRight != NULL) {
-        nd->cost = nd->cost + nd->cRight->cost;
-    }
-
-    printf("Cost is %lf\n\n",nd->cost);
-
-    sizes[nd->mRight-1] = sizes[nd->mLeft];
+    sizes[nd->mRight] = sizes[nd->mLeft];
 
 }
 

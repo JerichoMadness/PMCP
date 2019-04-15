@@ -15,5 +15,5 @@ make
 #Execute file
 echo "Running code..."
 
-build/out.x scripts/sizes1.txt
+build/out.x input/sizes1.txt
 

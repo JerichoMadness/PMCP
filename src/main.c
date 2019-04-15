@@ -278,7 +278,7 @@ int main(int argc, char *argv[]) {
     computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
 
     /*for(i=0;i<numOrder;i++)
-        printf("%d\n",orderCostFP[i]);
+        printf("%lf\n",orderCostFP[i]);
     printf("\n");*/
 
     resetCopySizes(sizes,copySizes,N+1);
@@ -307,9 +307,9 @@ int main(int argc, char *argv[]) {
 
     insertAllTreeCosts(allTree, copySizes, numOrder, N+1, 'F');
 
-    for(i=0;i<numOrder;i++) {
+    /*for(i=0;i<numOrder;i++) {
         printf("Cost of root %d: %lf\n\n",i,allTree[i]->cost);
-    }
+    }*/
 
     int nth = mkl_get_max_threads();
 

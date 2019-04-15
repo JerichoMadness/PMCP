@@ -178,7 +178,9 @@ void convertOrders(int **allOrder, int n) {
 
 void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int fac, char cf) {
 
-    int i,j,m,k,l;
+    int i,j;
+
+    double m,k,l;
 
     int *copySizes;
     copySizes = (int*) malloc((n+1)*sizeof(int));
@@ -186,7 +188,9 @@ void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int
     memcpy(copySizes,sizes,(n+1)*sizeof(int));
 
     for(i=0;i<fac;i++) {
-        
+       
+        orderCost[i] = 0.;
+         
         switch(cf) {
          
             case'F':
@@ -197,7 +201,7 @@ void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int
                     k = (double) copySizes[allOrder[i][2*j]+1];
                     l = (double) copySizes[allOrder[i][2*j+1]+1];
 
-                    //printf("m:%d , k:%d ,l:%d\n",m,k,l);                   
+                    //printf("m:%lf , k:%lf ,l:%lf\n",m,k,l);                   
  
                     orderCost[i] = orderCost[i] + m*k*l;
                     
