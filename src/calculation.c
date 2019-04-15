@@ -137,7 +137,6 @@ double calculateChainSingleParallel(double **A, double **interRes, int *sizes, s
 
     timeB4 = bli_clock();
 
-    //#pragma omp single
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
 
     timeAfter = bli_clock();

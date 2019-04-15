@@ -42,7 +42,25 @@ int contains(int *array, int val, int pos) {
  *
  */
 
-void swap(int *x, int *y) {
+void swapD(double *x, double *y) {
+
+    double temp; 
+    temp = *x; 
+    *x = *y; 
+    *y = temp; 
+
+}
+
+/* Function that swaps to elements of an array
+ *
+ * Parameters:
+ *
+ * *x = First element
+ * *y = Second element
+ *
+ */
+
+void swapI(int *x, int *y) {
 
     int temp; 
     temp = *x; 
@@ -50,6 +68,7 @@ void swap(int *x, int *y) {
     *y = temp; 
 
 }
+
 
 /* Function to save all possible chain order permutations
  *
@@ -84,10 +103,10 @@ void permute(int **allOrder, int *permChain, int n) {
    
             if((i%2) == 0) {
                 //printf("Swapping %d and %d\n\n",permChain[0],permChain[i]); 
-                swap(&permChain[0],&permChain[i]);
+                swapI(&permChain[0],&permChain[i]);
             } else {
                 //printf("Swapping %d and %d\n\n",permChain[tmp[i]],permChain[i]); 
-                swap(&permChain[tmp[i]],&permChain[i]);
+                swapI(&permChain[tmp[i]],&permChain[i]);
             }
     
             for(j=0;j<n;j++) {
@@ -118,12 +137,12 @@ void permute(int **allOrder, int *permChain, int n) {
  *
  */
 
-void rankElements(int *cost, int *rank, int n) { 
+void rankElements(double *cost, int *rank, int n) { 
 
     int i, j; 
 
-    int *tmp;
-    tmp = (int*) malloc(n*sizeof(int));
+    double *tmp;
+    tmp = (double*) malloc(n*sizeof(double));
 
     //Use a tmp array to avoid rearranging original order
     for (i = 0; i < n; i++) { 
@@ -135,7 +154,7 @@ void rankElements(int *cost, int *rank, int n) {
     for(i=0;i<n-1;i++) {
         for (j = 0; j < n-i-1; j++) {  
             if (tmp[j] > tmp[j+1]) {
-                swap(tmp+j, tmp+j+1);
+                swapD(tmp+j, tmp+j+1);
             }
         }
     }
@@ -178,7 +197,7 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
     int i;
 
 	for (i=0; i<n+1; i++) {
-		//sizes[i] = (rand() % max) + min;
+		//sizes[i] = (rand() % (max-min)) + min;
         sizes[i] = 1000;        
         copySizes[i] = sizes[i];
 	}
@@ -187,6 +206,38 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
         printf("Error! Sizes Array not allocated!");
         exit(0);
     }
+
+}
+
+void extractSizesFromFile(char *file, int *sizes, int *copySizes, int n) {
+
+    int pos, size;
+    pos=0;
+   
+    FILE *fp;
+ 
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen(file, "r");
+    if(fp == NULL)
+        exit(EXIT_FAILURE);
+
+    while (((read = getline(&line, &len, fp)) != -1) && (pos != n)) {
+        //printf("Retrieved line of length %zu:\n", read);
+        //printf("%s", line);
+        sizes[pos] = atoi(line);
+        copySizes[pos] = sizes[pos];
+        //printf("Sizes[%d] = %d\n\n",pos,sizes[pos]);
+        
+        pos = pos+1;
+
+    }
+
+    if(pos < n)
+        printf("Error! Not enough size arguments (%d instead of %d) in the input file!\n\n",pos,n);
+
 
 }
 
@@ -220,10 +271,15 @@ void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n)
 
     int i;
 
-    for (i=0;i<n+1;i++)
-        normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/(sizeMax*n);
+    for (i=0;i<n+1;i++) {
+        //normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/(sizeMax);
+        normSizes[i] = sizes[i];
+        //printf("size: %d, normSize: %d\n",sizes[i],normSizes[i]);
+    }
 
-}     
+    //printf("\n");
+
+}        
 
 
 

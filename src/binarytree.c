@@ -7,6 +7,7 @@ struct node {
     int mLeft;
     int mRight;
     int opNum;
+    double cost;
     struct node *cLeft;
     struct node *cRight;
 };
@@ -50,6 +51,7 @@ struct node* newNode(int left, int right, int op) {
     nd->mLeft = left;
     nd->mRight = right;
     nd->opNum = op;
+    nd->cost = 0.;
     nd->cLeft = NULL;
     nd->cRight = NULL;
 
@@ -258,3 +260,62 @@ int removeDuplicates(int **allOrder, struct node **allTree, int length, int n) {
         
 }
 
+void insertCost(struct node *nd, int *sizes, char cf) {
+
+    nd->cost = 0.;
+
+    if(nd->cLeft != NULL) {
+        insertCost(nd->cRight, sizes, cf);
+        printf("Going left\n\n");
+    }
+
+    if(nd->cRight != NULL) {
+        insertCost(nd->cRight, sizes, cf);
+        printf("Going right\n\n");
+    }
+
+    switch(cf) {
+
+        case 'F':
+            nd->cost = nd->cost + (double) sizes[nd->mLeft] * (double) sizes[nd->mRight] * (double) sizes[nd->mRight+1];
+            printf("Inserted cost");
+            break;
+        case 'M':
+            nd->cost = nd->cost + (double) sizes[nd->mLeft] * (double) sizes[nd->mRight+1];
+            break;
+        default:
+            printf("Error: Wrong mode %s!\n\n",cf);
+    }
+
+
+    if(nd->cLeft != NULL) {
+        nd->cost = nd->cost + nd->cLeft->cost;
+    }
+
+    if(nd->cRight != NULL) {
+        nd->cost = nd->cost + nd->cRight->cost;
+    }
+
+    printf("Cost is %lf\n\n",nd->cost);
+
+    sizes[nd->mRight-1] = sizes[nd->mLeft];
+
+}
+
+void insertAllTreeCosts(struct node **allTree, int *sizes, int numOrder, int n, char cf) {
+
+    int i,j;
+    int *tmpSizes;
+    tmpSizes = (int*) malloc(n*sizeof(int));
+
+    printf("Mode is %s\n\n",cf);
+
+    for(i=0;i<numOrder;i++) {
+        memcpy(tmpSizes,sizes,n*sizeof(int));
+        insertCost(allTree[i],tmpSizes, cf);
+        //printf("Done tree %d\n\n",i);
+    }
+
+    free(tmpSizes);
+
+}

@@ -49,7 +49,7 @@ void createSizeString (char *sizeString, int *sizes, int n) {
  *
  */
 
-void createStatisticString(char *statString, char *sizeString, int *order, int costFP, int rankFP, int costMEM, int rankMEM, double timeMeasure, int n) {
+void createStatisticString(char *statString, char *sizeString, int *order, double costFP, int rankFP, double costMEM, int rankMEM, double timeMeasure, int n, char mode) {
     
     int i;
 
@@ -84,10 +84,34 @@ void createStatisticString(char *statString, char *sizeString, int *order, int c
     strcat(statString,tmp);
  
     //Append rest of the values
-    sprintf(tmp,"%d,%d,%d,%d,%lf",costFP,rankFP,costMEM,rankMEM,timeMeasure);
+    sprintf(tmp,"%lf,%d,%lf,%d,%lf",costFP,rankFP,costMEM,rankMEM,timeMeasure);
+ 
+    strcat(statString,tmp);
+
+    //Append mode
+    
+    switch(mode) {
+
+        case 'S':
+            sprintf(tmp,",SEQ");
+            break;
+        case 'B':
+            sprintf(tmp,",BLAS_P");
+            break;
+        case 'T':
+            sprintf(tmp,",TASK_P");
+            break;
+        case 'C':
+            sprintf(tmp,",COMB_P");
+            break;
+        default:
+            printf("Error, %s is not a valid mode!\n\n",mode);
+            break;
+
+    }
 
     strcat(statString,tmp);
- 
+
     free(orderString);
     free(tmp);
 
@@ -130,13 +154,13 @@ int createStatisticsFile(int n) {
     for(i=1;i<n+1;i++)
         fprintf(fp,",Size%d",i+1);
 
-    fprintf(fp,",Order,FP Cost,FP Rank,Memory Cost,Memory Rank,Time");
+    fprintf(fp,",Order,FP Cost,FP Rank,Memory Cost,Memory Rank,Time,Mode");
 
     fclose(fp);
 
     printf("Finished creating new statistics file!\n\n");
     
-    int numCol = n+1+6;
+    int numCol = n+1+7;
 
     return numCol;
 

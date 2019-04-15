@@ -176,14 +176,14 @@ void convertOrders(int **allOrder, int n) {
  *
  */
 
-void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, int fac, char cf) {
+void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int fac, char cf) {
 
     int i,j,m,k,l;
 
     int *copySizes;
     copySizes = (int*) malloc((n+1)*sizeof(int));
 
-    memcpy(copySizes,normSizes,(n+1)*sizeof(int));
+    memcpy(copySizes,sizes,(n+1)*sizeof(int));
 
     for(i=0;i<fac;i++) {
         
@@ -193,15 +193,15 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
                 for(j=0;j<n-1;j++) {
 
-                    m = copySizes[allOrder[i][2*j]];
-                    k = copySizes[allOrder[i][2*j]+1];
-                    l = copySizes[allOrder[i][2*j+1]+1];
+                    m = (double) copySizes[allOrder[i][2*j]];
+                    k = (double) copySizes[allOrder[i][2*j]+1];
+                    l = (double) copySizes[allOrder[i][2*j+1]+1];
 
                     //printf("m:%d , k:%d ,l:%d\n",m,k,l);                   
  
                     orderCost[i] = orderCost[i] + m*k*l;
                     
-                    copySizes[allOrder[i][2*j+1]] = m;
+                    copySizes[allOrder[i][2*j+1]] = copySizes[allOrder[i][2*j]];
                 
                 }
                 
@@ -211,14 +211,14 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
             
                 for(j=0;j<n-1;j++) {
 
-                    m = copySizes[allOrder[i][2*j]];
-                    l = copySizes[allOrder[i][2*j+1]+1];
+                    m = (double) copySizes[allOrder[i][2*j]];
+                    l = (double) copySizes[allOrder[i][2*j+1]+1];
 
                     //printf("m:%d ,l:%d\n",m,l);                   
                
                     orderCost[i] = orderCost[i] + m*l;
                     
-                    copySizes[allOrder[i][2*j+1]] = m;
+                    copySizes[allOrder[i][2*j+1]] = copySizes[allOrder[i][2*j]];
 
                 }
 
@@ -229,7 +229,7 @@ void computeChainCosts(int **allOrder, int *orderCost, int *normSizes, int n, in
 
         }
 
-        resetCopySizes(normSizes,copySizes,n+1);
+        resetCopySizes(sizes,copySizes,n+1);
     
     }
 

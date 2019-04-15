@@ -1,8 +1,8 @@
 #!/bin/zsh
 
 ### jobname
-#BSUB -J ChainJob[1-50]%1
-###BSUB -J job
+###BSUB -J ChainJob[1-20]%1
+#BSUB -J job
 
 ### output file
 #BSUB -o testOut.%J
@@ -17,10 +17,13 @@
 #BSUB -x
 
 ### Use only one node
-#BSUB -n 1
+#BSUB -n 24
 
 ### Use AICES cluster
 #BSUB -P aices2
+
+### Use this specific node
+#BSUB -m linuxihdc072
 
 ### which processor
 #BSUB -R model==Haswell_EP
@@ -28,6 +31,9 @@
 ### send email when finished
 #BSUB -N
 
+###Use OpenMP
+#BSUB -a openmp
+
 cd $HOME/PMCP/
-taskset -c 1 build/out.x
+build/out.x
 

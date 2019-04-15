@@ -5,6 +5,7 @@ struct node {
     int mLeft;
     int mRight;
     int opNum;
+    double cost;
     struct node *cLeft;
     struct node *cRight;
 };
@@ -18,5 +19,6 @@ int maxDepth(struct node *nd);
 int checkEquivalance(struct node *nodeA, struct node *nodeB); 
 void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n);
 int removeDuplicates(int **allOrder, struct node **allTree, int length, int n); 
-
+void insertCost(struct node *nd, int *sizes, char cf);
+void insertAllTreeCosts(struct node **allTree, int *sizes, int numOrder, int n, char cf); 
 #endif
