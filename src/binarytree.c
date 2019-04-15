@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <float.h>
 #include "helper.h"
 
 struct node {
@@ -265,13 +267,11 @@ void insertCost(struct node *nd, int *sizes, char cf) {
     nd->cost = 0.;
 
     if(nd->cLeft != NULL) {
-        insertCost(nd->cRight, sizes, cf);
-        printf("Going left\n\n");
+        insertCost(nd->cLeft, sizes, cf);
     }
 
     if(nd->cRight != NULL) {
         insertCost(nd->cRight, sizes, cf);
-        printf("Going right\n\n");
     }
 
     switch(cf) {
@@ -284,7 +284,7 @@ void insertCost(struct node *nd, int *sizes, char cf) {
             nd->cost = nd->cost + (double) sizes[nd->mLeft] * (double) sizes[nd->mRight+1];
             break;
         default:
-            printf("Error: Wrong mode %s!\n\n",cf);
+            printf("Error: Wrong mode %c!\n\n",cf);
     }
 
 
@@ -307,8 +307,6 @@ void insertAllTreeCosts(struct node **allTree, int *sizes, int numOrder, int n, 
     int i,j;
     int *tmpSizes;
     tmpSizes = (int*) malloc(n*sizeof(int));
-
-    printf("Mode is %s\n\n",cf);
 
     for(i=0;i<numOrder;i++) {
         memcpy(tmpSizes,sizes,n*sizeof(int));
