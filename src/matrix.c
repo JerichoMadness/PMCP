@@ -104,7 +104,10 @@ void getAllOrders(int **allOrder, int n) {
 
     permute(allOrder,permChain,n);
 
-    /*for(i=0;i<fac;i++) {
+    int numOrder = factorial(n);
+    int j;
+
+    for(i=0;i<numOrder;i++) {
         printf("[ ");
         for(j=0;j<n;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
@@ -112,7 +115,7 @@ void getAllOrders(int **allOrder, int n) {
         printf(" ]\n");
     }
 
-    printf("\n");*/
+    printf("\n");
 
     free(permChain);
 
@@ -133,26 +136,30 @@ void convertOrders(int **allOrder, int n) {
     int i,j,numOrder,contained,val;
     numOrder = factorial(n);
 
+    int *left;
+    left = (int*) malloc(n*sizeof(int));
+
     for(i=0;i<numOrder;i++) {
         
-        for(j=1;j<n;j++) {    
-       
-            val = allOrder[i][2*j+1];
-            contained = contains(allOrder[i],val,2*j+1);
+        left[0] = allOrder[i][0];
 
-            if(contained == 1) {
-                while(contained == 1) {
-                    val = val+1;
-                    contained = contains(allOrder[i],val,2*j+1);
-                }
-                allOrder[i][2*j+1] = val-1;
-            } else
-                allOrder[i][2*j+1] = val;
+        for(j=1;j<n;j++) {    
+
+            left[j] = allOrder[i][2*j];
+            val = allOrder[i][2*j+1];
+            contained = contains(left,val,j);
+
+            while(contained == 1) {
+                val = val+1;
+                contained = contains(left,val,j);
+            }
+            
+            allOrder[i][2*j+1] = val;
         }
 
     }
 
-    /*for(i=0;i<numOrder;i++) {
+    for(i=0;i<numOrder;i++) {
         printf("[ ");
         for(j=0;j<n;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
@@ -160,7 +167,9 @@ void convertOrders(int **allOrder, int n) {
         printf(" ]\n");
     }
 
-    printf("\n");*/
+    printf("\n");
+
+    free(left);
 
 }
 

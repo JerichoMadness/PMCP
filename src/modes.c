@@ -27,7 +27,7 @@
  *
  */
 
-#define N 4
+#define N 5
 
 /* Value how many iterations a computation should walk through
  *
