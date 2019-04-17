@@ -1,5 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env/ zsh
 
 
-bsub < clusterScript.sh
+sbatch clusterScript.sh
 

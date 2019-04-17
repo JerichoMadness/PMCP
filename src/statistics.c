@@ -59,13 +59,15 @@ void createStatisticString(char *statString, char *sizeString, int *order, doubl
     tmp = malloc(512*sizeof(char));
 
     //Start with empty string
-    sprintf(statString,"");
+    //sprintf(statString,"");
+    statString[0]='\0';
 
     //Append sizes
     strcat(statString,sizeString);
 
     //Create temporary order string
-    sprintf(orderString,"");
+    //sprintf(orderString,"");
+    orderString[0]='\0';
 
     for(i=0;i<n-1;i++) {
         sprintf(tmp,"(%dx%d)",order[2*i],order[2*i+1]);
@@ -105,7 +107,7 @@ void createStatisticString(char *statString, char *sizeString, int *order, doubl
             sprintf(tmp,",COMB_P");
             break;
         default:
-            printf("Error, %s is not a valid mode!\n\n",mode);
+            printf("Error, %c is not a valid mode!\n\n",mode);
             break;
 
     }
@@ -179,7 +181,6 @@ int createStatisticsFile(int n) {
 void addStatisticsToFile(char *buffer, char *cpyBuffer, int numCol) {
 
     FILE *fp;
-    int i;   
 
     char *fname = "results.csv";
 

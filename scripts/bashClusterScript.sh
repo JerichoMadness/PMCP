@@ -1,32 +1,41 @@
 #!/usr/bin/env zsh
 
-### Name of the job
-#SBATCH --job-name=job
+### jobname
+###BSUB -J ChainJob[1-20]%1
+#BSUB -J job
 
-### Name of the ouztput file
-#SBATCH --output=../output/out.%J.txt
+### output file
+#BSUB -o testOut.%J
 
-### Time your job needs to execute, e. g. 30 min
-#SBATCH --time=00:30:00
+### error output file
+###BSUB -e error.%J
 
-### Memory your job needs per node, e. g. 500 MB
-#SBATCH --mem=2000M
+### time constraint
+#BSUB -W 1:00
 
-### Use nodes exclusively
-#SBATCH --exclusive
+### memory constraint
+#BSUB -M 2000
 
-### Use N nodes
-#SBATCH --nodes=24
+### Use node exclusively
+#BSUB -x
 
-### Use AICES or AICES2 cluster
-###SBATCH --clusters=aices2
+### Use only one node
+#BSUB -n 24
+
+### Use AICES cluster
+#BSUB -P aices2
 
 ### Use this specific node
-#SBATCH --nodelist=linuxihdc072
+#BSUB -m linuxihdc072
 
-### send email when done
-#SBATCH --mail-type=end 
-#SBATCH --mail-user=alexander.reeh@rwth-aachen.de 
+### which processor
+#BSUB -R model==Haswell_EP
+
+### send email when finished
+#BSUB -N
+
+###Use OpenMP
+#BSUB -a openmp
 
     export MKL_NUM_THREADS="2"
     export OMP_MAX_ACTIVE_LEVELS="2" # set the maximum number of nested active parallel regions on the device.

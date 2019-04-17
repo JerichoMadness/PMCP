@@ -33,9 +33,11 @@
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+#define _POSIX_C_SOURCE 199309L
 
 //#include "blis.h"
 #include <time.h>
+
 
 #define bli_min( a, b ) ( (a) < (b) ? (a) : (b) )
 

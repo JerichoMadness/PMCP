@@ -11,7 +11,7 @@
 #include <bli_clock.h>
 #include <omp.h>
 #include "binarytree.h"
-
+#include "helper.h"
 
 #define CACHESIZE 30000000
 
@@ -67,10 +67,10 @@ double calculateChainSequential(double **A, double **interRes, int *sizes, struc
     if(mode == 'S') {
         mkl_set_num_threads_local(1);
     } else if (mode != 'B') {
-        printf("Wrong mode %c! Doing default BLAS parallel");
+        printf("Wrong mode %c! Doing default BLAS parallel",mode);
     }
 
-    printf("Number of threads: %d\n\n",mkl_get_max_threads());
+    //printf("Number of threads: %d\n\n",mkl_get_max_threads());
 
     timeB4 = bli_clock();
 
@@ -123,14 +123,14 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
     if(mode == 'T') {
         mkl_set_num_threads_local(1);
-    } else if (mode == 'C') {
+    /*} else if (mode == 'C') {
         //printf("Mode is combined!\n\n");
-        mkl_set_num_threads_local(4);
+        mkl_set_num_threads_local(4);*/
     } else if (mode != 'C') {
-        printf("Wrong mode %c! Doing default BLAS parallel");
+        printf("Wrong mode %c! Doing default BLAS parallel\n\n",mode);
     }
 
-    printf("Number of threads: %d\n\n",mkl_get_max_threads());
+    //printf("Number of threads: %d\n\n",mkl_get_max_threads());
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
 
@@ -177,8 +177,6 @@ double calculateChainTaskParallel(double **A, double **interRes, int *sizes, str
 
     double timeB4, timeAfter, timeSum;
     timeSum = 0.;
-
-    int i;
 
     //Clean cache first to remove any prior data on it
 

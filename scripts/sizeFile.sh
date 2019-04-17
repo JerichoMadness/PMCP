@@ -23,10 +23,11 @@ do
 
     while [[ $j -le $LENGTH ]]
     do
-        while :; do rand=$RANDOM; ((rand < 32760)) &&  rand=$(((rand%${MAX})+${MIN})) && break; done 
+        while :; do rand=$RANDOM; ((rand < 32760)) &&  rand=$(((rand%(${MAX}-${MIN}))+${MIN})) && break; done 
         echo "$rand" >> $file
         ((j = j+1)) 
     done
-       
+
+    mv "$file ../input/"       
     ((i = i+1))
 done

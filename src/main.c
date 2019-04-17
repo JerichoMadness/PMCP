@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
  	*
  	**/
 
-    int i,j;
+    int i;
 
     double **A;
     double **copyA;
@@ -273,8 +273,6 @@ int main(int argc, char *argv[]) {
 
     printf("Now computing the costs for each pair (order,cost function)...\n\n");
 
-    //normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
-
     computeChainCosts(allOrder,orderCostFP,copySizes,N,numOrder,'F');
 
     /*for(i=0;i<numOrder;i++)
@@ -283,8 +281,6 @@ int main(int argc, char *argv[]) {
 
     resetCopySizes(sizes,copySizes,N+1);
  
-    normalizeSizes(sizes,copySizes,sizeMin,sizeMax,N);
-  
     computeChainCosts(allOrder,orderCostMEM,copySizes,N,numOrder,'M');
 
     /*for(i=0;i<numOrder;i++)

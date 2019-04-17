@@ -155,7 +155,7 @@ void specMode(struct node **allTree, double **A, double **copyA, double **interR
                     break;
             
                 default:
-                    printf("Not a valid mode: %s\n\n",mode);
+                    printf("Not a valid mode: %c\n\n",mode);
                     break;
 
             }
@@ -219,7 +219,7 @@ void allMode(struct node **allTree, double **A, double **copyA, double **interRe
                     break;
  
                 default:
-                    printf("Not a valid mode: %s\n\n",mode);
+                    printf("Not a valid mode: %c\n\n",mode);
                     break;
 
             }

@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
+#include "array.h"
+#include "helper.h"
 
 /* Function to reset an altered copy array of matrices
  *
@@ -85,14 +87,13 @@ void initializeMatrices (double **A, double **copyA, int *sizes, int n) {
  * Parameters:
  *
  * allOrder = Matrix where all the permutated orders are saved
- * n = Number of multiplications needed to compute the chain product (!= number of matrices
+ * n = Number of multiplications needed to compute the chain product (!= number of matrices)
  *
  */
 
 void getAllOrders(int **allOrder, int n) {
 
-    int i,j,fac;
-    fac = factorial(n);
+    int i;
 
     int *permChain;
     permChain = (int*) malloc(n*sizeof(int));
@@ -129,10 +130,10 @@ void getAllOrders(int **allOrder, int n) {
 
 void convertOrders(int **allOrder, int n) {
 
-    int i,j,k,fac,contained,val;
-    fac = factorial(n);
+    int i,j,numOrder,contained,val;
+    numOrder = factorial(n);
 
-    for(i=0;i<fac;i++) {
+    for(i=0;i<numOrder;i++) {
         
         for(j=1;j<n;j++) {    
        
@@ -151,7 +152,7 @@ void convertOrders(int **allOrder, int n) {
 
     }
 
-    /*for(i=0;i<fac;i++) {
+    /*for(i=0;i<numOrder;i++) {
         printf("[ ");
         for(j=0;j<n;j++) {
             printf("(%d,%d)",allOrder[i][2*j],allOrder[i][(2*j)+1]);
@@ -229,7 +230,7 @@ void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int
                 break;
 
             default:
-                printf("Wrong parameter! %s", cf);
+                printf("Wrong parameter! %c", cf);
 
         }
 

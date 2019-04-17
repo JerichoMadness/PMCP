@@ -82,18 +82,18 @@ struct node* insert(struct node *nd, int left, int right, int num) {
      * If left matrix is larger than current nodes right matrix, go to right child
      * The inserted chain can be a subchain between left or right and would be inserted in the right node
      */
-    else if((right == nd->mRight) && (nd->mLeft < left < nd->mRight)) {
+    else if( (right == (nd->mRight) ) && ( ((nd->mLeft) < left) && (left  < (nd->mRight)) ) ) {
         nd->cRight = insert( nd->cRight, left, right, num );
-    } else if((right == nd->mLeft) && (left < nd->mLeft))  {
+    } else if( (right == (nd->mLeft) ) && ( left < (nd->mLeft) ) )  {
         nd->cLeft = insert( nd->cLeft, left, right, num );
-    } else if(left > nd->mRight) {
+    } else if( left > (nd->mRight) ) {
         nd->cRight = insert(nd->cRight,left,right,num);
-    } else if(right < nd->mLeft) {
+    } else if(right < (nd->mLeft) ) {
         nd->cLeft = insert(nd->cLeft,left,right,num);
-    } else if(nd->mLeft < left < right < nd->mRight) {
+    } else if( ((nd->mLeft) < left) && (left < right) && (right < (nd->mRight)) ) {
         nd->cRight = insert(nd->cRight,left,right,num);
     } else {
-        printf("Mistake! Node can't be inserted for values (%d,%d) with current node (%d,%d)\n\n",left,right,nd->mLeft,nd->mRight);
+        printf("Mistake! Node can't be inserted for values (%d,%d) with current node (%d,%d)\n\n",left,right,nd->mLeft,(nd->mRight) );
     }
 
     return nd;
@@ -303,7 +303,7 @@ void insertCost(struct node *nd, int *sizes, char cf) {
 
 void insertAllTreeCosts(struct node **allTree, int *sizes, int numOrder, int n, char cf) {
 
-    int i,j;
+    int i;
     int *tmpSizes;
     tmpSizes = (int*) malloc(n*sizeof(int));
 

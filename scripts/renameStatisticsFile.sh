@@ -2,4 +2,4 @@
 
 cd ..
 
-mv results.csv results_old_$(date +%F-%H:%M:%S).csv
+mv results.csv output/results_old_$(date +%F-%H:%M:%S).csv

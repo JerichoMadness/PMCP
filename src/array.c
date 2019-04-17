@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -5,7 +7,8 @@
 #include <float.h>
 #include <string.h>
 #include <math.h>
-
+#include <stddef.h>
+#include <sys/types.h>
 /* Helper function to check if a current number is included in an array
  *
  * Arguments:
@@ -84,8 +87,7 @@ void permute(int **allOrder, int *permChain, int n) {
 
     int tmp[n];
 
-    int i,j,fac,pos;
-    fac = factorial(n);
+    int i,j,pos;
     pos = 0;
 
     for(i=0;i<n;i++) {
@@ -211,7 +213,7 @@ void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
 
 void extractSizesFromFile(char *file, int *sizes, int *copySizes, int n) {
 
-    int pos, size;
+    int pos;
     pos=0;
    
     FILE *fp;
@@ -255,32 +257,4 @@ void resetCopySizes(int *sizes, int *copySizes, int n) {
     memcpy(copySizes,sizes,n*sizeof(int));
 
 }
-
-/* To prevent over-/underflow during cost computation normalize the values by factor (sizeMax/sizeMin)/(sizeMax*n)
- * Dividing by n is for scaling
- *
- * Arguments:
- *
- * sizes = Array with matrix sizes
- * sizeMin/Max = Smallest/largest matrix sizes used to compute factorization factor
- * n = Number of matrices
- *
- */
-
-void normalizeSizes(int *sizes, int *normSizes, int sizeMin, int sizeMax, int n) {
-
-    int i;
-
-    for (i=0;i<n+1;i++) {
-        //normSizes[i] = ((sizeMax/sizeMin)*sizes[i])/(sizeMax);
-        normSizes[i] = sizes[i];
-        //printf("size: %d, normSize: %d\n",sizes[i],normSizes[i]);
-    }
-
-    //printf("\n");
-
-}        
-
-
-
 
