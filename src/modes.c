@@ -27,13 +27,13 @@
  *
  */
 
-#define N 5
+#define N 4
 
 /* Value how many iterations a computation should walk through
  *
  */
 
-#define NRUNS 3
+#define NRUNS 50
 
 #define NCF 2
 
@@ -41,6 +41,7 @@
 
 #define BOTTOM 3
 
+#define NUM_THREADS 8
 
 void specMode(struct node **allTree, double **A, double **copyA, double **interRes, int *sizes, int *copySizes, int **allOrder, double *orderCostFP, int *rankFP, double *orderCostMEM, int *rankMEM, char *statString, char *sizeString, int numOrder, int numCol, char mode) {
 
@@ -139,19 +140,19 @@ void specMode(struct node **allTree, double **A, double **copyA, double **interR
             switch(mode) {
 
                 case 'S':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'S');
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'S',NUM_THREADS);
                     break;
 
                 case'B':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'B');
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[pos],'B',NUM_THREADS);
                     break;
     
                 case'T':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'T');
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'T',NUM_THREADS);
                     break;
  
                 case'C':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'C');
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[pos],'C',NUM_THREADS);
                     break;
             
                 default:
@@ -203,19 +204,19 @@ void allMode(struct node **allTree, double **A, double **copyA, double **interRe
             switch(mode) {
 
                 case 'S':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'S');
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'S',NUM_THREADS);
                     break;
 
                 case'B':
-                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'B');
+                    timeMeasure = calculateChainSequential(copyA,interRes,copySizes,allTree[i],'B',NUM_THREADS);
                     break;
     
                 case'T':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'T');
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'T',NUM_THREADS);
                     break;
             
                 case'C':       
-                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'C');
+                    timeMeasure = calculateChainTaskParallel(copyA,interRes,copySizes,allTree[i],'C',NUM_THREADS);
                     break;
  
                 default:

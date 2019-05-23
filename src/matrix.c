@@ -213,7 +213,7 @@ void computeChainCosts(int **allOrder, double *orderCost, int *sizes, int n, int
 
                     //printf("m:%lf , k:%lf ,l:%lf\n",m,k,l);                   
  
-                    orderCost[i] = orderCost[i] + m*k*l;
+                    orderCost[i] = orderCost[i] + 2*m*k*l;
                     
                     copySizes[allOrder[i][2*j+1]] = copySizes[allOrder[i][2*j]];
                 

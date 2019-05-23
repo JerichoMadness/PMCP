@@ -17,5 +17,6 @@ make
 #Execute file
 echo "Running code..."
 
-build/out.x input/sizesN4.txt
+#build/out.x input/sizesN4.txt
+build/out.x
 

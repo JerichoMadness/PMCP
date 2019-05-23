@@ -15,6 +15,7 @@ struct node* newNode(int left, int right, int num);
 void destroyTree(struct node *nd);
 struct node* insert(struct node *nd, int left, int right, int num);
 struct node* createTree(struct node *root, int *order, int n);
+int leafCount(struct node *nd);
 int maxDepth(struct node *nd); 
 int checkEquivalance(struct node *nodeA, struct node *nodeB); 
 void removeTree(int **allOrder, struct node **allTree, int pos, int length, int n);

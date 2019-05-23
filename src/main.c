@@ -36,19 +36,7 @@
  *
  */
 
-#define N 5
-
-/* Value how many iterations a computation should walk through
- *
- */
-
-#define NRUNS 3
-
-#define NCF 2
-
-#define TOP 5
-
-#define BOTTOM 3
+#define N 4
 
 /* MODE = 0: All orders
  * MODE = 1: Only TOP and BOTTOM orders
@@ -66,12 +54,14 @@
 
 #define SEQ 0
 
-#define BLAS_PARL 0
+#define BLAS_PARL 1
 
 #define TASK_PARL 0
 
-#define COMB_PARL 1
+#define COMB_PARL 0
 
+
+#define NUM_THREADS 8
 
 int main(int argc, char *argv[]) {
 

@@ -27,17 +27,17 @@
  *
  */
 
-double calculateChainSequential(double **A, double **interRes, int *sizes, struct node *nd, char mode)  {
+double calculateChainSequential(double **A, double **interRes, int *sizes, struct node *nd, char mode, int nthreads)  {
 
     double timeB4, timeAfter, timeSum;
     timeSum = 0.;
 
     if((nd->cLeft) != NULL) {
-        timeSum = timeSum + calculateChainSequential(A,interRes,sizes,nd->cLeft, mode);   
+        timeSum = timeSum + calculateChainSequential(A,interRes,sizes,nd->cLeft, mode, nthreads);   
     }
 
     if((nd->cRight) != NULL) {
-        timeSum = timeSum + calculateChainSequential(A,interRes,sizes,nd->cRight, mode);
+        timeSum = timeSum + calculateChainSequential(A,interRes,sizes,nd->cRight, mode, nthreads);
     }
 
     int posX,posY;
@@ -64,23 +64,26 @@ double calculateChainSequential(double **A, double **interRes, int *sizes, struc
 
     //printf("Using matrices %d(%dx%d) and %d(%dx%d) and saving the result in intermediate matrix %d\n\n",posX,m,k,posY,k,n,opPos);
 
+    timeB4 = bli_clock();
+
     if(mode == 'S') {
-        mkl_set_num_threads_local(1);
-    } else if (mode != 'B') {
+        omp_set_num_threads(1);
+    } else if(mode == 'B') {
+        omp_set_num_threads(nthreads);
+    } else if ((mode != 'B') && (mode != 'S')) {
         printf("Wrong mode %c! Doing default BLAS parallel",mode);
     }
 
     //printf("Number of threads: %d\n\n",mkl_get_max_threads());
 
-    timeB4 = bli_clock();
-
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
+
+    if(mode == 'B')
+        omp_set_num_threads(1);
 
     timeAfter = bli_clock();
 
     timeSum = timeSum + (timeAfter-timeB4);
-
-    mkl_set_num_threads_local(0);
 
     //printf("Final InterRes value: %lf. Intermediate results: %lfs. Overall: %lfs\n\n", interRes[opPos][m*n-1], (timeAfter - timeB4), timeSum);
 
@@ -96,7 +99,7 @@ double calculateChainSequential(double **A, double **interRes, int *sizes, struc
 
 }
 
-void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, char mode) {
+void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, char mode, int nthreads) {
 
     int posX,posY;
 
@@ -121,20 +124,28 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
     //printf("Using matrices %d(%dx%d) and %d(%dx%d)\n\n",posX,m,k,posY,k,n);
 
+    //double timeB4,timeAfter;
+    //timeB4 = bli_clock();
+
     if(mode == 'T') {
-        mkl_set_num_threads_local(1);
-    /*} else if (mode == 'C') {
+        omp_set_num_threads(1);
+    } else if (mode == 'C') {
         //printf("Mode is combined!\n\n");
-        mkl_set_num_threads_local(4);*/
-    } else if (mode != 'C') {
+        omp_set_num_threads(nthreads);
+    } else if ((mode != 'C') && (mode != 'T')) {
         printf("Wrong mode %c! Doing default BLAS parallel\n\n",mode);
     }
 
-    //printf("Number of threads: %d\n\n",mkl_get_max_threads());
+    //printf("Number of threads: %d\n\n",nthreads);
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A[posX], k, A[posY], n, beta, interRes[opPos], n);
 
-    mkl_set_num_threads_local(0);
+    if(mode == 'C')
+        omp_set_num_threads(1);
+    
+    //timeAfter = bli_clock();
+
+    //printf("Intermediate results: %lfs. Overall:\n\n", (timeAfter - timeB4));
 
     A[posY] = interRes[opPos];
      
@@ -146,34 +157,79 @@ void multiplyMatrix(double **A, double **interRes, int *sizes, struct node *nd, 
 
 }
 
-void processTree(double **A, double **interRes, int *sizes, struct node *nd, char mode) {
+void processTree(double **A, double **interRes, int *sizes, struct node *nd, char mode, int nthreads) {
 
+    int lThreads,rThreads;
+    double lCost,rCost;
+
+    if(mode=='B') {
+        lThreads = 1;
+        rThreads = 1;
+    } else if((mode=='C') && (nd->cLeft != NULL) && (nd->cRight != NULL) ) {
+
+        lThreads=4;
+        rThreads=4;
+        /*lCost = nd->cLeft->cost;
+        rCost = nd->cRight->cost;
+
+        double allCost;
+        allCost = lCost + rCost;
+
+        lThreads = (int) (rCost/allCost)*nthreads;
+        rThreads = (int) (lCost/allCost)*nthreads;
+
+        if(lThreads < rThreads) {
+            lThreads = lThreads+1;
+        } else if (rThreads < lThreads) {
+            rThreads = rThreads+1;
+        } 
+
+        int minLThreads,minRThreads;
+
+        minLThreads = leafCount(nd->cLeft);
+        minRThreads = leafCount(nd->cRight);
+
+        if(minLThreads > lThreads){
+            lThreads = minLThreads;
+            rThreads = nthreads-lThreads;
+        }
+
+        if(minRThreads > rThreads){
+            rThreads = minRThreads;
+            lThreads = nthreads-rThreads;
+        }*/
+
+    } else if (nd->cLeft == NULL) {
+        rThreads = nthreads;
+    } else if(nd->cRight == NULL) {
+        lThreads = nthreads;
+    }
 
     if(nd->cLeft != NULL) {
         #pragma omp task shared(A, interRes, sizes), firstprivate(nd) 
         {
-        //int id = omp_get_thread_num();
-        //printf("I am thread %d in left child! \n\n",id);
-        processTree(A,interRes,sizes,nd->cLeft,mode);   
+        int id = omp_get_thread_num();
+        printf("I am thread %d in left child! \n\n",id);
+        processTree(A,interRes,sizes,nd->cLeft,mode,lThreads);   
         }
     }
 
     if(nd->cRight != NULL) {
         #pragma omp task shared(A, interRes, sizes), firstprivate(nd)
         {
-        //int id = omp_get_thread_num();
-        //printf("I am thread %d in right child!\n\n",id);
-        processTree(A,interRes,sizes,nd->cRight,mode);
+        int id = omp_get_thread_num();
+        printf("I am thread %d in right child!\n\n",id);
+        processTree(A,interRes,sizes,nd->cRight,mode,rThreads);
         }
     }
 
     #pragma omp taskwait
 
-    multiplyMatrix(A,interRes,sizes,nd, mode);
+    multiplyMatrix(A,interRes,sizes,nd, mode,nthreads);
     
 }
 
-double calculateChainTaskParallel(double **A, double **interRes, int *sizes, struct node *root, char mode)  {
+double calculateChainTaskParallel(double **A, double **interRes, int *sizes, struct node *root, char mode, int nthreads)  {
 
     double timeB4, timeAfter, timeSum;
     timeSum = 0.;
@@ -186,8 +242,7 @@ double calculateChainTaskParallel(double **A, double **interRes, int *sizes, str
 
     #pragma omp parallel
     #pragma omp single
-    //funProcess(root);
-    processTree(A, interRes, sizes, root, mode);
+    processTree(A, interRes, sizes, root, mode, nthreads);
     #pragma omp taskwait
 
     timeAfter = bli_clock();

@@ -195,12 +195,22 @@ void rankElements(double *cost, int *rank, int n) {
  */
 
 void setMatrixSizes(int *sizes, int *copySizes, int n, int min, int max) {
-    
+ 
+    int k;
+    k=400;
+
+    sizes[0] = k;
+    sizes[1] = k;
+    sizes[2] = k/2;
+    sizes[3] = k;
+    sizes[4] = k;
+
+   
     int i;
 
 	for (i=0; i<n+1; i++) {
 		//sizes[i] = (rand() % (max-min)) + min;
-        sizes[i] = 1000;        
+        //sizes[i] = 2000;        
         copySizes[i] = sizes[i];
 	}
 

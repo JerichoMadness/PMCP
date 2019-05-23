@@ -117,25 +117,25 @@ struct node* createTree(struct node *root, int *order, int n) {
 
 }
 
+int leafCount(struct node* nd) {
 
-/*void insertTreeSizes(struct node *nd, int *sizes) {
+    int count;
 
-    if(nd == NULL) return;
+    count = 0;
 
-    if(nd->cLeft != NULL) {
-        insertTreeSizes(nd->cLeft, sizes);
-        compCost = compCost + nd->cLeft->compCost
-    }
+    if((nd->cLeft == NULL) && (nd->cRight == NULL))
+        return 1;
 
-    if(nd->cRight != NULL) {
-        insertTreeSizes(nd->cRight, sizes);
-        compCost = 
-    }
+    if(nd->cLeft != NULL)
+        count = count + leafCount(nd->cLeft);
 
-    nd->curCost = sizes[mLeft]*sizes[mRight];
-    
+    if(nd->cRight != NULL)
+        count = count + leafCount(nd->cRight);
 
-}*/
+    return count;
+
+}
+
 
 /* Function to get the Depth of a tree
  *
@@ -284,7 +284,7 @@ void insertCost(struct node *nd, int *sizes, char cf) {
             m = (double) sizes[nd->mLeft]; 
             k = (double) sizes[nd->mRight]; 
             n = (double) sizes[nd->mRight+1];
-            nd->cost = nd->cost + (m*k*n);
+            nd->cost = nd->cost + (2*m*k*n);
             //printf("Added %lf*%lf*%lf\n\n",m,k,n);
             break;
         case 'M':
