@@ -56,12 +56,9 @@
 
 #define BLAS_PARL 1
 
-#define TASK_PARL 0
+#define TASK_PARL 0 
 
-#define COMB_PARL 0
-
-
-#define NUM_THREADS 8
+#define COMB_PARL 1
 
 int main(int argc, char *argv[]) {
 

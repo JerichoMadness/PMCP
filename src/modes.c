@@ -33,7 +33,7 @@
  *
  */
 
-#define NRUNS 50
+#define NRUNS 5
 
 #define NCF 2
 
@@ -41,7 +41,7 @@
 
 #define BOTTOM 3
 
-#define NUM_THREADS 8
+#define NUM_THREADS 24
 
 void specMode(struct node **allTree, double **A, double **copyA, double **interRes, int *sizes, int *copySizes, int **allOrder, double *orderCostFP, int *rankFP, double *orderCostMEM, int *rankMEM, char *statString, char *sizeString, int numOrder, int numCol, char mode) {
 

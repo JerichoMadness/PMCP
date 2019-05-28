@@ -2,7 +2,7 @@ CC = gcc
 
 MKLROOT =  /opt/intel/mkl/2019.0.117
 
-CFLAGS = -O0 -Wall -m64 -I${MKLROOT}/include -fopenmp -Isrc -std=c99 -g 
+CFLAGS = -O3 -Wall -m64 -I${MKLROOT}/include -fopenmp -Isrc -std=c99 -g 
 
 MKLPARL =  -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
 MKLSEQ  =  -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
